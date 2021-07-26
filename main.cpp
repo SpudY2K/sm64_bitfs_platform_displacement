@@ -1003,7 +1003,7 @@ void search_normals() {
 						}
 						else {
 							if (c_min > 0) {
-								poly_x_start = INFINITY;
+								poly_x_start = -INFINITY;
 								poly_x_end = fmax(x1_min, x1_max);
 							}
 							else {
@@ -1018,7 +1018,7 @@ void search_normals() {
 							poly_x_end = INFINITY;
 						}
 						else {
-							poly_x_start = INFINITY;
+							poly_x_start = -INFINITY;
 							poly_x_end = fmax(x2_min, x2_max);
 						}
 					}
@@ -1060,7 +1060,7 @@ void search_normals() {
 						}
 						else {
 							if (c_min / m > 0) {
-								poly_z_start = INFINITY;
+								poly_z_start = -INFINITY;
 								poly_z_end = fmax(z1_min, z1_max);
 							}
 							else {
@@ -1075,7 +1075,7 @@ void search_normals() {
 							poly_z_end = INFINITY;
 						}
 						else {
-							poly_z_start = INFINITY;
+							poly_z_start = -INFINITY;
 							poly_z_end = fmax(z2_min, z2_max);
 						}
 					}
