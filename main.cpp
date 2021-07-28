@@ -881,8 +881,8 @@ void search_normals() {
 
 				double T_diff01 = T_tilt[0][1] - T_start[0][1];
 				double T_diff21 = T_tilt[2][1] - T_start[2][1];
-				double r_min = lower_y - (1 + T_diff11)*max_y - T_diff01 * plat.pos[0] - T_diff11 * plat.pos[1] - T_diff21 * plat.pos[2];
-				double r_max = upper_y - (1 + T_diff11)*min_y - T_diff01 * plat.pos[0] - T_diff11 * plat.pos[1] - T_diff21 * plat.pos[2];
+				double r_min = lower_y - (1 + T_diff11)*max_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
+				double r_max = upper_y - (1 + T_diff11)*min_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
 
 				// z = mx + c_min
 				// z = mx + c_max
