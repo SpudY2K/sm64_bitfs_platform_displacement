@@ -864,8 +864,8 @@ void search_normals() {
 			double platform_min_z = fmin(fmin(platform_z[0], platform_z[1]), fmin(platform_z[2], platform_z[3]));
 			double platform_max_z = fmax(fmax(platform_z[0], platform_z[1]), fmax(platform_z[2], platform_z[3]));
 
-			double min_y = fmin(lava_y, fmin(fmin(platform_y[0], platform_y[1]), fmin(platform_y[2], platform_y[3]))) - plat.pos[1];
-			double max_y = fmax(fmax(platform_y[0], platform_y[1]), fmax(platform_y[2], platform_y[3])) - plat.pos[1];
+			double min_y = fmin(lava_y, fmin(fmin(platform_y[0], platform_y[1]), fmin(platform_y[2], platform_y[3])));
+			double max_y = fmax(fmax(platform_y[0], platform_y[1]), fmax(platform_y[2], platform_y[3]));
 
 			Mat4 T_start = plat.transform;
 			
@@ -881,8 +881,8 @@ void search_normals() {
 
 				double T_diff01 = T_tilt[0][1] - T_start[0][1];
 				double T_diff21 = T_tilt[2][1] - T_start[2][1];
-				double r_min = lower_y - 0.99*max_y - plat.pos[1];
-				double r_max = upper_y - 0.99*min_y - plat.pos[1];
+				double r_min = lower_y - (1 + T_diff11)*max_y - T_diff01 * plat.pos[0] - T_diff11 * plat.pos[1] - T_diff21 * plat.pos[2];
+				double r_max = upper_y - (1 + T_diff11)*min_y - T_diff01 * plat.pos[0] - T_diff11 * plat.pos[1] - T_diff21 * plat.pos[2];
 
 				// z = mx + c_min
 				// z = mx + c_max
