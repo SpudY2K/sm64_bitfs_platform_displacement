@@ -643,8 +643,8 @@ bool try_pu_x(Platform* plat, Mat4 T_start, Mat4 T_tilt, double x, double x1_min
 		double base_platform_displacement_x = x * T_diff00 + z * T_diff20;
 		double base_platform_displacement_z = x * T_diff02 + z * T_diff22;
 
-		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_x));
-		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_z));
+		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(x + plat->pos[0] + base_platform_displacement_x));
+		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(z + plat->pos[2] + base_platform_displacement_z));
 
 		// Check if our likely horizontal platform displacement puts us out of bounds.
 		// If so, skip checking this PU.
@@ -657,11 +657,11 @@ bool try_pu_x(Platform* plat, Mat4 T_start, Mat4 T_tilt, double x, double x1_min
 
 	// Search forwards from z>0
 	for (double z = fmax(262144.0, min_z_pu); z - 8192 < max_z_pu; z += 262144.0) {
-		double base_platform_displacement_x = x + x * T_diff00 + z * T_diff20;
-		double base_platform_displacement_z = z + x * T_diff02 + z * T_diff22;
+		double base_platform_displacement_x = x * T_diff00 + z * T_diff20;
+		double base_platform_displacement_z = x * T_diff02 + z * T_diff22;
 
-		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_x));
-		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_z));
+		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(x + plat->pos[0] + base_platform_displacement_x));
+		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(z + plat->pos[2] + base_platform_displacement_z));
 
 		// Check if our likely horizontal platform displacement puts us out of bounds.
 		// If so, skip checking this PU.
@@ -781,8 +781,8 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 		double base_platform_displacement_x = x * T_diff00 + z * T_diff20;
 		double base_platform_displacement_z = x * T_diff02 + z * T_diff22;
 
-		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_x));
-		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_z));
+		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(x + plat->pos[0] + base_platform_displacement_x));
+		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(z + plat->pos[2] + base_platform_displacement_z));
 
 		// Check if our likely horizontal platform displacement puts us out of bounds.
 		// If so, skip checking this PU.
@@ -798,8 +798,8 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 		double base_platform_displacement_x = x * T_diff00 + z * T_diff20;
 		double base_platform_displacement_z = x * T_diff02 + z * T_diff22;
 
-		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_x));
-		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(base_platform_displacement_z));
+		double bpd_x_mod = static_cast<int16_t>(static_cast<int>(x + plat->pos[0] + base_platform_displacement_x));
+		double bpd_z_mod = static_cast<int16_t>(static_cast<int>(z + plat->pos[2] + base_platform_displacement_z));
 
 		// Check if our likely horizontal platform displacement puts us out of bounds.
 		// If so, skip checking this PU.
