@@ -31,6 +31,14 @@ void Surface::rotate(const Vec3s& pivot, const Mat4& old_mat, const Mat4& new_ma
 		vector2[i] += posAfterRotation2[i] - posBeforeRotation2[i];
 		vector3[i] += posAfterRotation3[i] - posBeforeRotation3[i];	
 	}
+
+	normal[0] = (((vector2[1] - vector1[1]) * (vector3[2] - vector2[2])) - ((vector2[2] - vector1[2]) * (vector3[1] - vector2[1]))) * 1000.0f;
+	normal[1] = (((vector2[2] - vector1[2]) * (vector3[0] - vector2[0])) - ((vector2[0] - vector1[0]) * (vector3[2] - vector2[2]))) * 1000.0f;
+	normal[2] = (((vector2[0] - vector1[0]) * (vector3[1] - vector2[1])) - ((vector2[1] - vector1[1]) * (vector3[0] - vector2[0]))) * 1000.0f;
+
+	vec3f_normalize(normal);
+
+	originOffset = -(normal[0] * vector1[0] + normal[1] * vector1[1] + normal[2] * vector1[2]);
 }
 
 void Surface::repr() {
