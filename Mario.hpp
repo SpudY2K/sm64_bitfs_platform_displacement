@@ -23,9 +23,7 @@ public:
 	}
 
 	void set_pos(const Vec3f& position);
-	int ground_step(int yaw, float normalY);
-	//vector<float> qstep(int8_t x, int8_t y);
-
+	int ground_step(int yaw, Vec2S& triangles);
 };
 
 #endif
