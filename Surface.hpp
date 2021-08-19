@@ -17,6 +17,9 @@ public:
 	Vec3s vector1;
 	Vec3s vector2;
 	Vec3s vector3;
+	Vec3s* vectors[3] = { &vector1, &vector2, &vector3 };
+	Vec3f normal;
+	float originOffset;
 	bool top;
 
 	Surface(bool top) {
@@ -40,6 +43,12 @@ public:
 			vector3[1] = -2918;
 			vector3[2] = -408;
 		}
+
+		normal[0] = 0.0f;
+		normal[1] = 1.0f;
+		normal[2] = 0.0f;
+		
+		originOffset = -vector1[1];
 
 		this->top = top;
 	}
