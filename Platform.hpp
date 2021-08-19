@@ -23,7 +23,6 @@ public:
 	}
 
 	void create_transform_from_normals();
-	Surface const * find_floor(Mario* m) const;
 	void platform_logic(Mario* m);
 };
 
