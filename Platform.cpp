@@ -34,58 +34,6 @@ void Platform::create_transform_from_normals() {
 	mtxf_align_terrain_normal(transform, normal, pos, 0);
 }
 
-Surface const * Platform::find_floor(Mario* m) const {
-	Surface const * floor = NULL;
-
-	int16_t x = static_cast<int16_t>(static_cast<int>(m->pos[0]));
-	int16_t y = static_cast<int16_t>(static_cast<int>(m->pos[1]));
-	int16_t z = static_cast<int16_t>(static_cast<int>(m->pos[2]));
-
-	for (int i = 0; i < 3; i++) {
-		const Surface& surf = triangles[i];
-
-		int16_t x1 = surf.vector1[0];
-		int16_t z1 = surf.vector1[2];
-		int16_t x2 = surf.vector2[0];
-		int16_t z2 = surf.vector2[2];
-
-		// Check that the point is within the triangle bounds.
-		if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) < 0) {
-			continue;
-		}
-
-		// To slightly save on computation time, set this later.
-		int16_t x3 = surf.vector3[0];
-		int16_t z3 = surf.vector3[2];
-
-		if ((z2 - z) * (x3 - x2) - (x2 - x) * (z3 - z2) < 0) {
-			continue;
-		}
-		if ((z3 - z) * (x1 - x3) - (x3 - x) * (z1 - z3) < 0) {
-			continue;
-		}
-
-		float nx = normal[0];
-		float ny = normal[1];
-		float nz = normal[2];
-		float oo = -(nx * x1 + ny * surf.vector1[1] + nz * z1);
-
-		// Find the height of the floor at a given location.
-		float height = -(x * nx + nz * z + oo) / ny;
-		// Checks for floor interaction with a 78 unit buffer.
-		if (y - (height + -78.0f) < 0.0f) {
-			continue;
-		}
-
-		floor = &surf;
-		break;
-	}
-
-	//! (Surface Cucking) Since only the first floor is returned and not the highest,
-	//  higher floors can be "cucked" by lower floors.
-	return floor;
-}
-
 void Platform::platform_logic(Mario* m) {
 	float dx;
 	float dy;
@@ -149,7 +97,7 @@ void Platform::platform_logic(Mario* m) {
 	//don't care about rotating the triangles after the displacement
 
 	// pretty sure you can always assume if here, then mario is on the floor
-	Surface const* floor = this->find_floor(m);
+	Surface const* floor = find_floor(m->pos, triangles);
 
 	// If Mario is on the platform, adjust his position for the platform tilt.
 	if (floor) {
