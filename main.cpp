@@ -22,7 +22,7 @@ const float normal_offsets[4][3] = { {0.01f, -0.01f, 0.01f}, {-0.01f, -0.01f, 0.
 
 int solution_count = 0; 
 
-bool validate_solution(const Vec3f& m_pos, const Vec3f& normals, const float speed, int hau) {
+int validate_solution(Mario* mario, const Vec3f& normals) {
 	Platform plat;
 
 	plat.normal[0] = 0;
@@ -38,27 +38,27 @@ bool validate_solution(const Vec3f& m_pos, const Vec3f& normals, const float spe
 	plat.triangles[0].rotate(plat.pos, old_mat, plat.transform);
 	plat.triangles[1].rotate(plat.pos, old_mat, plat.transform);
 
-	Mario mario(m_pos, speed);
+	plat.platform_logic(mario);
 
-	if (mario.ground_step(hau, plat.triangles) == 0) { 
-		return false;
+	if (mario->ground_step(plat.triangles) == 0) {
+		return 1;
 	}
 
-	if (!find_floor(mario.pos, plat.triangles)) { 
-		return false;
+	if (!find_floor(mario->pos, plat.triangles)) {
+		return 2;
 	}
 
-	plat.platform_logic(&mario);
+	plat.platform_logic(mario);
 
-	if (!check_inbounds(mario)) { 
-		return false;
+	if (!check_inbounds(*mario)) {
+		return 3;
 	}
 
-	if (mario.pos[1] >= lower_y && mario.pos[1] < upper_y) {
-		return true;
+	if (mario->pos[1] >= lower_y && mario->pos[1] < upper_y) {
+		return 0;
 	}
 	else {
-		return false;
+		return 4;
 	}
 }
 
@@ -1087,10 +1087,12 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 						// Validate the final parameter set.
 						// Can fail for a number of reasons, see original
 						// validate_solution for more details
+						const Vec3f v_normal = { (float)initial_nx, (float)initial_ny, (float)initial_nz };
+						Mario v_mario({ original_x, original_y, original_z }, adj_speed, (int)(16.0 * hau));
 
-						if (validate_solution({ original_x, original_y, original_z }, { initial_nx, initial_ny, initial_nz }, adj_speed, (int)(16.0 * hau))) {
-							//printf("Solution found:\nSpeed: %f\nDe Facto Speed: %f\nYaw: %d\nPlatform normals: (%.9f, %.9f, %.9f)\nMario start: (%.9f, %.9f, %.9f)\n",
-							//	adj_speed, speed*plat->triangles[tri_idx].normal[1], (int)(16.0*hau), (float)initial_nx, (float)initial_ny, (float)initial_nz, original_x, original_y, original_z);
+						if (validate_solution(&v_mario, v_normal) == 0) {
+							printf("Solution found:\nSpeed: %f\nDe Facto Speed: %f\nYaw: %d\nPlatform normals: (%.9f, %.9f, %.9f)\nMario start: (%.9f, %.9f, %.9f)\nMario end: (%.9f, %.9f, %.9f)\n",
+								adj_speed, speed*plat->triangles[tri_idx].normal[1], (int)(16.0*hau), v_normal[0], v_normal[1], v_normal[2], original_x, original_y, original_z, v_mario.pos[0], v_mario.pos[1], v_mario.pos[2]);
 							solution_count++;
 						}
 
