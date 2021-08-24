@@ -47,10 +47,13 @@ int validate_solution(Mario* mario, const Vec3f& normals) {
 	if (!find_floor(mario->pos, plat.triangles)) {
 		return 2;
 	}
+	
+	Vec3f pre_tilt_pos = mario->pos;
 
 	plat.platform_logic(mario);
 
 	if (!check_inbounds(*mario)) {
+		mario->set_pos(pre_tilt_pos);
 		return 3;
 	}
 
