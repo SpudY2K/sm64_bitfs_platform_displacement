@@ -1618,8 +1618,6 @@ void search_normals() {
 	double sample_gap = 2.0*norm_norm / (double)n_samples;
 
 	//for (double norm_norm=0.3; norm_norm<=1.5; norm_norm+=0.01) {
-		double minNZ = INFINITY;
-
 		for (double nx = -norm_norm; nx <= norm_norm; nx += sample_gap) {
 			printf("nx = %f\n", nx);
 			double max_nz_dist = floor(sqrt(norm_norm*norm_norm - nx * nx) / sample_gap)*sample_gap;
@@ -1838,23 +1836,6 @@ void search_normals() {
 							else {
 								continue;
 							}
-							
-							if (!isnan(T_diff01) && !isnan(T_diff21)) {
-								double cross1 = (sin(a[i]) * T_diff21 - cos(a[i]) * -T_diff01) * (sin(a[i]) * cos(a[(i + 1) % 4]) - cos(a[i]) * sin(a[(i + 1) % 4]));
-								double cross2 = (sin(a[(i + 1) % 4]) * T_diff21 - cos(a[(i + 1) % 4]) * -T_diff01) * (sin(a[(i + 1) % 4]) * cos(a[i]) - cos(a[(i + 1) % 4]) * sin(a[i]));
-								double cross3 = (sin(a[i]) * -T_diff21 - cos(a[i]) * T_diff01) * (sin(a[i]) * cos(a[(i + 1) % 4]) - cos(a[i]) * sin(a[(i + 1) % 4]));
-								double cross4 = (sin(a[(i + 1) % 4]) * -T_diff21 - cos(a[(i + 1) % 4]) * T_diff01) * (sin(a[(i + 1) % 4]) * cos(a[i]) - cos(a[(i + 1) % 4]) * sin(a[i]));
-
-								if (nz*normal_offsets[i][2] < 0) {
-									if (i % 2 == 1 && !(cross1 >= 0 && cross2 >= 0)) {
-										minNZ = fmin(minNZ, abs(nz));
-									}
-									if (i % 2 == 0 && !(cross3 >= 0 && cross4 >= 0)) {
-										minNZ = fmin(minNZ, abs(nz));
-									}
-								}
-
-							}
 
 							double first_x_pu = ceil((poly_x_start - platform_max_x) / pu_gap)*pu_gap;
 							double last_x_pu = floor((poly_x_end - platform_min_x) / pu_gap)*pu_gap;
@@ -1911,23 +1892,6 @@ void search_normals() {
 							}
 							else {
 								continue;
-							}
-							
-							if (!isnan(T_diff01) && !isnan(T_diff21)) {
-								double cross1 = (sin(a[i]) * T_diff21 - cos(a[i]) * -T_diff01) * (sin(a[i]) * cos(a[(i + 1) % 4]) - cos(a[i]) * sin(a[(i + 1) % 4]));
-								double cross2 = (sin(a[(i + 1) % 4]) * T_diff21 - cos(a[(i + 1) % 4]) * -T_diff01) * (sin(a[(i + 1) % 4]) * cos(a[i]) - cos(a[(i + 1) % 4]) * sin(a[i]));
-								double cross3 = (sin(a[i]) * -T_diff21 - cos(a[i]) * T_diff01) * (sin(a[i]) * cos(a[(i + 1) % 4]) - cos(a[i]) * sin(a[(i + 1) % 4]));
-								double cross4 = (sin(a[(i + 1) % 4]) * -T_diff21 - cos(a[(i + 1) % 4]) * T_diff01) * (sin(a[(i + 1) % 4]) * cos(a[i]) - cos(a[(i + 1) % 4]) * sin(a[i]));
-
-								if (nz*normal_offsets[i][2] < 0) {
-									if (i % 2 == 1 && !(cross1 >= 0 && cross2 >= 0)) {
-										minNZ = fmin(minNZ, abs(nz));
-									}
-									if (i % 2 == 0 && !(cross3 >= 0 && cross4 >= 0)) {
-										minNZ = fmin(minNZ, abs(nz));
-									}
-								}
-
 							}
 
 							double first_z_pu = ceil((poly_z_start - platform_max_z) / pu_gap)*pu_gap;
