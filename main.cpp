@@ -1607,20 +1607,25 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 }
 
 void search_normals() {
-	Mario mario;
-	Platform plat;
-	Vec2S tri = plat.triangles;
-
 	myfile.open("Normals.txt");
 
-	double norm_norm = 0.95;
-	int n_samples = 1000;
-	double sample_gap = 2.0*norm_norm / (double)n_samples;
+	const double norm_norm = 0.95;
+	const int n_samples = 1000;
+	const double sample_gap = 2.0*norm_norm / (double)n_samples;
+
+	const double min_ny = 0.01;
 
 	//for (double norm_norm=0.3; norm_norm<=1.5; norm_norm+=0.01) {
-		for (double nx = -norm_norm; nx <= norm_norm; nx += sample_gap) {
+		#pragma omp parallel for schedule(dynamic, 1)
+		for (int i = 0; i <= n_samples; i++) {
+			double nx = ((double)i*sample_gap) - norm_norm;
+			
+			Mario mario;
+			Platform plat;
+			Vec2S tri = plat.triangles;
+			
 			printf("nx = %f\n", nx);
-			double max_nz_dist = floor(sqrt(norm_norm*norm_norm - nx * nx) / sample_gap)*sample_gap;
+			double max_nz_dist = floor(sqrt(norm_norm*norm_norm - nx * nx - min_ny * min_ny) / sample_gap)*sample_gap;
 			for (double nz = -max_nz_dist; nz <= max_nz_dist; nz += sample_gap) {
 				solution_count = 0;
 
@@ -1917,7 +1922,10 @@ void search_normals() {
 				plat.triangles = tri;
 				
 				if (solution_count > 0) {
-					myfile << nx << ", " << nz << ", " << solution_count << "\n";
+					#pragma omp critical 
+					{
+						myfile << nx << ", " << nz << ", " << solution_count << "\n";
+					}
 				}
 			}
 		}
