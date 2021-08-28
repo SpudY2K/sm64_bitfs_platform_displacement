@@ -94,10 +94,10 @@ Surface const * find_floor(Vec3f& pos, Vec2S& triangles) {
 	for (int i = 0; i < 2; i++) {
 		const Surface& surf = triangles[i];
 
-		int16_t x1 = surf.vector1[0];
-		int16_t z1 = surf.vector1[2];
-		int16_t x2 = surf.vector2[0];
-		int16_t z2 = surf.vector2[2];
+		int16_t x1 = surf.vectors[0][0];
+		int16_t z1 = surf.vectors[0][2];
+		int16_t x2 = surf.vectors[1][0];
+		int16_t z2 = surf.vectors[1][2];
 
 		// Check that the point is within the triangle bounds.
 		if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) < 0) {
@@ -105,8 +105,8 @@ Surface const * find_floor(Vec3f& pos, Vec2S& triangles) {
 		}
 
 		// To slightly save on computation time, set this later.
-		int16_t x3 = surf.vector3[0];
-		int16_t z3 = surf.vector3[2];
+		int16_t x3 = surf.vectors[2][0];
+		int16_t z3 = surf.vectors[2][2];
 
 		if ((z2 - z) * (x3 - x2) - (x2 - x) * (z3 - z2) < 0) {
 			continue;
@@ -118,7 +118,7 @@ Surface const * find_floor(Vec3f& pos, Vec2S& triangles) {
 		float nx = surf.normal[0];
 		float ny = surf.normal[1];
 		float nz = surf.normal[2];
-		float oo = -(nx * x1 + ny * surf.vector1[1] + nz * z1);
+		float oo = -(nx * x1 + ny * surf.vectors[0][1] + nz * z1);
 
 		// Find the height of the floor at a given location.
 		float height = -(x * nx + nz * z + oo) / ny;
