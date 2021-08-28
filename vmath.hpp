@@ -15,6 +15,7 @@ typedef std::array<int16_t, 3> Vec3s;
 typedef std::array<int32_t, 3> Vec3i;
 typedef std::array<float, 4> Vec4f;
 typedef std::array<int16_t, 4> Vec4s;
+typedef std::array<Vec3s, 3> VecVec3s;
 
 typedef std::array<std::array<float, 4>, 4> Mat4;
 
