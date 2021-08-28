@@ -18,12 +18,14 @@ const double lower_y = 3521.0;
 const double upper_y = 3841.0;
 const double max_speed = 1000000000.0;
 const double lava_y = -3071.0;
+
 const float normal_offsets[4][3] = { {0.01f, -0.01f, 0.01f}, {-0.01f, -0.01f, 0.01f}, {-0.01f, -0.01f, -0.01f}, {0.01f, -0.01f, -0.01f} };
+const int platform_idx = 0;
 
 int solution_count = 0; 
 
 int validate_solution(Mario* mario, const Vec3f& normals) {
-	Platform plat;
+	Platform plat(platform_idx);
 
 	plat.normal[0] = 0;
 	plat.normal[1] = 1;
@@ -184,10 +186,10 @@ bool validate_solution(Platform* plat, double hau, double pu_x, double pu_z, dou
 bool in_triangle(Surface surf, float x, float z) {
 	// Check if Mario is currently stood inside the (x, z) bounds
 	// of the triangle within the original universe.
-	int32_t x1 = surf.vector1[0];
-	int32_t z1 = surf.vector1[2];
-	int32_t x2 = surf.vector2[0];
-	int32_t z2 = surf.vector2[2];
+	int32_t x1 = surf.vectors[0][0];
+	int32_t z1 = surf.vectors[0][2];
+	int32_t x2 = surf.vectors[1][0];
+	int32_t z2 = surf.vectors[1][2];
 
 	// Check that the point is within the triangle bounds.
 	if ((z1 - z) * (x2 - x1) - (x1 - x) * (z2 - z1) < 0) {
@@ -195,8 +197,8 @@ bool in_triangle(Surface surf, float x, float z) {
 	}
 
 	// To slightly save on computation time, set this later.
-	int32_t x3 = surf.vector3[0];
-	int32_t z3 = surf.vector3[2];
+	int32_t x3 = surf.vectors[2][0];
+	int32_t z3 = surf.vectors[2][2];
 
 	if ((z2 - z) * (x3 - x2) - (x2 - x) * (z3 - z2) < 0) {
 		return false;
@@ -214,10 +216,10 @@ bool on_triangle(Surface surf, float x, float y, float z) {
 	float y_mod = static_cast<int16_t>(static_cast<int>(y));
 	float z_mod = static_cast<int16_t>(static_cast<int>(z));
 
-	int32_t x1 = surf.vector1[0];
-	int32_t z1 = surf.vector1[2];
-	int32_t x2 = surf.vector2[0];
-	int32_t z2 = surf.vector2[2];
+	int32_t x1 = surf.vectors[0][0];
+	int32_t z1 = surf.vectors[0][2];
+	int32_t x2 = surf.vectors[1][0];
+	int32_t z2 = surf.vectors[1][2];
 
 	// Check that the point is within the triangle bounds.
 	if ((z1 - z_mod) * (x2 - x1) - (x1 - x_mod) * (z2 - z1) < 0) {
@@ -225,8 +227,8 @@ bool on_triangle(Surface surf, float x, float y, float z) {
 	}
 
 	// To slightly save on computation time, set this later.
-	int32_t x3 = surf.vector3[0];
-	int32_t z3 = surf.vector3[2];
+	int32_t x3 = surf.vectors[2][0];
+	int32_t z3 = surf.vectors[2][2];
 
 	if ((z2 - z_mod) * (x3 - x2) - (x2 - x_mod) * (z3 - z2) < 0) {
 		return false;
@@ -271,10 +273,10 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 	//
 	// Then calculate required speed from distance.
 
-	Vec3s* firstVector = plat->triangles[1 - tri_idx].vectors[0];
-	Vec3s* secondVector = tri_idx == 0 ? plat->triangles[1 - tri_idx].vectors[1] : plat->triangles[1 - tri_idx].vectors[2];
-	Vec3s* thirdVector = tri_idx == 0 ? plat->triangles[1 - tri_idx].vectors[2] : plat->triangles[1 - tri_idx].vectors[1];
-	Vec3s* oppVector = tri_idx == 0 ? plat->triangles[tri_idx].vectors[1] : plat->triangles[tri_idx].vectors[2];
+	Vec3s* firstVector = &(plat->triangles[1 - tri_idx].vectors[0]);
+	Vec3s* secondVector = tri_idx == 0 ? &(plat->triangles[1 - tri_idx].vectors[1]) : &(plat->triangles[1 - tri_idx].vectors[2]);
+	Vec3s* thirdVector = tri_idx == 0 ? &(plat->triangles[1 - tri_idx].vectors[2]) : &(plat->triangles[1 - tri_idx].vectors[1]);
+	Vec3s* oppVector = tri_idx == 0 ? &(plat->triangles[tri_idx].vectors[1]) : &(plat->triangles[tri_idx].vectors[2]);
 
 	double cross0 = ((*secondVector)[0] - (*firstVector)[0])*((*oppVector)[2] - (*firstVector)[2]) - ((*secondVector)[2] - (*firstVector)[2])*((*oppVector)[0] - (*firstVector)[0]);
 	double cross1 = ((*secondVector)[0] - (*firstVector)[0])*((*oppVector)[2] + pu_z - (*firstVector)[2]) - ((*secondVector)[2] - (*firstVector)[2])*((*oppVector)[0] + pu_x - (*firstVector)[0]);
@@ -881,8 +883,8 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 		float start_z = (float)((min_speed_start_z + max_speed_start_z) / 2.0f);
 
 		// We don't want this to be on the edge of the triangle. Move five units towards triangle's centre
-		float centre_x = (float)(plat->triangles[tri_idx].vector1[0] + plat->triangles[tri_idx].vector2[0] + plat->triangles[tri_idx].vector3[0]) / 3.0f;
-		float centre_z = (float)(plat->triangles[tri_idx].vector1[2] + plat->triangles[tri_idx].vector2[2] + plat->triangles[tri_idx].vector3[2]) / 3.0f;
+		float centre_x = (float)(plat->triangles[tri_idx].vectors[0][0] + plat->triangles[tri_idx].vectors[1][0] + plat->triangles[tri_idx].vectors[2][0]) / 3.0f;
+		float centre_z = (float)(plat->triangles[tri_idx].vectors[0][2] + plat->triangles[tri_idx].vectors[1][2] + plat->triangles[tri_idx].vectors[2][2]) / 3.0f;
 
 		float start_centre_dist_x = centre_x - start_x;
 		float start_centre_dist_z = centre_z - start_z;
@@ -934,7 +936,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 				// Currently we have Mario's position after first tilt,
 				// so track backwards to find initial position.
 
-				Platform pre_plat;
+				Platform pre_plat(platform_idx);
 				Mat4 t_diff;
 
 				for (int i = 0; i < 8; i++) {
@@ -967,9 +969,9 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					t_diff[2][1] = plat->transform[2][1] - pre_plat.transform[2][1];
 					t_diff[2][2] = plat->transform[2][2] - pre_plat.transform[2][2];
 
-					double coeff1a[4] = { start_x - 1945.0*t_diff[0][0] - 3225.0*t_diff[1][0] - 715.0*t_diff[2][0], 1 + t_diff[0][0], t_diff[1][0], t_diff[2][0] };
-					double coeff1b[4] = { start_y - 1945.0*t_diff[0][1] - 3225.0*t_diff[1][1] - 715.0*t_diff[2][1], t_diff[0][1], 1 + t_diff[1][1], t_diff[2][1] };
-					double coeff1c[4] = { start_z - 1945.0*t_diff[0][2] - 3225.0*t_diff[1][2] - 715.0*t_diff[2][2], t_diff[0][2], t_diff[1][2], 1 + t_diff[2][2] };
+					double coeff1a[4] = { start_x + ((double)plat->pos[0])*t_diff[0][0] + ((double)plat->pos[1])*t_diff[1][0] + ((double)plat->pos[2])*t_diff[2][0], 1 + t_diff[0][0], t_diff[1][0], t_diff[2][0] };
+					double coeff1b[4] = { start_y + ((double)plat->pos[0])*t_diff[0][1] + ((double)plat->pos[1])*t_diff[1][1] + ((double)plat->pos[2])*t_diff[2][1], t_diff[0][1], 1 + t_diff[1][1], t_diff[2][1] };
+					double coeff1c[4] = { start_z + ((double)plat->pos[0])*t_diff[0][2] + ((double)plat->pos[1])*t_diff[1][2] + ((double)plat->pos[2])*t_diff[2][2], t_diff[0][2], t_diff[1][2], 1 + t_diff[2][2] };
 
 					if (abs(coeff1a[1]) < abs(coeff1b[1])) {
 						double temp = *coeff1a;
@@ -1052,13 +1054,13 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 
 					Vec3f dist;
 
-					dist[0] = original_x - -1945.0;
-					dist[1] = original_y - -3225.0;
-					dist[2] = original_z - -715.0;
+					dist[0] = original_x - (float)plat->pos[0];
+					dist[1] = original_y - (float)plat->pos[1];
+					dist[2] = original_z - (float)plat->pos[2];
 
-					float dx = original_x - -1945.0f;
+					float dx = original_x - (float)plat->pos[0];
 					float dy = 500.0f;
-					float dz = original_z - -715.0f;
+					float dz = original_z - (float)plat->pos[2];
 					float d = sqrtf(dx * dx + dy * dy + dz * dz);
 
 					d = 1.0f / d;
@@ -1111,10 +1113,10 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 				bool overshot = false;
 
 				for (int b = 0; b < 3; b++) {
-					double pu_platform_start_x = pu_x + (*plat->triangles[1 - tri_idx].vectors[b])[0];
-					double pu_platform_start_z = pu_z + (*plat->triangles[1 - tri_idx].vectors[b])[2];
-					double pu_platform_end_x = pu_x + (*plat->triangles[1 - tri_idx].vectors[(b + 1) % 3])[0];
-					double pu_platform_end_z = pu_z + (*plat->triangles[1 - tri_idx].vectors[(b + 1) % 3])[2];
+					double pu_platform_start_x = pu_x + plat->triangles[1 - tri_idx].vectors[b][0];
+					double pu_platform_start_z = pu_z + plat->triangles[1 - tri_idx].vectors[b][2];
+					double pu_platform_end_x = pu_x + plat->triangles[1 - tri_idx].vectors[(b + 1) % 3][0];
+					double pu_platform_end_z = pu_z + plat->triangles[1 - tri_idx].vectors[(b + 1) % 3][2];
 
 					double t_n = (start_x - pu_platform_start_x)*(pu_platform_start_z - pu_platform_end_z) - (start_z - pu_platform_start_z)*(pu_platform_start_x - pu_platform_end_x);
 					double t_d = (start_x - end_x)*(pu_platform_start_z - pu_platform_end_z) - (start_z - end_z)*(pu_platform_start_x - pu_platform_end_x);
@@ -1177,12 +1179,12 @@ bool try_pu_xz(Platform* plat, double x, double z, double nx, double ny, double 
 	// For current (x, z) PU position, find range of yaws that
 	// allow you to reach the PU platform from the original universe.
 
-	double x_dist1 = plat->triangles[0].vector2[0] - plat->triangles[1].vector3[0];
-	double z_dist1 = plat->triangles[0].vector2[2] - plat->triangles[1].vector3[2];
+	double x_dist1 = plat->triangles[0].vectors[1][0] - plat->triangles[1].vectors[2][0];
+	double z_dist1 = plat->triangles[0].vectors[1][2] - plat->triangles[1].vectors[2][2];
 	double dist1 = sqrt(x_dist1 * x_dist1 + z_dist1 * z_dist1);
 
-	double x_dist2 = plat->triangles[0].vector1[0] - plat->triangles[0].vector3[0];
-	double z_dist2 = plat->triangles[0].vector1[2] - plat->triangles[0].vector3[2];
+	double x_dist2 = plat->triangles[0].vectors[0][0] - plat->triangles[0].vectors[2][0];
+	double z_dist2 = plat->triangles[0].vectors[0][2] - plat->triangles[0].vectors[2][2];
 	double dist2 = sqrt(x_dist2 * x_dist2 + z_dist2 * z_dist2);
 
 	double min_dist = sqrt(x * x + z * z) - fmax(dist1, dist2);
@@ -1204,8 +1206,8 @@ bool try_pu_xz(Platform* plat, double x, double z, double nx, double ny, double 
 			if (q_steps == 4) {
 				for (int a = 0; a < 3; a++) {
 					for (int b = 0; b < 3; b++) {
-						double x_dist = x + (*plat->triangles[1 - i].vectors[b])[0] - (*plat->triangles[i].vectors[a])[0];
-						double z_dist = z + (*plat->triangles[1 - i].vectors[b])[2] - (*plat->triangles[i].vectors[a])[2];
+						double x_dist = x + plat->triangles[1 - i].vectors[b][0] - plat->triangles[i].vectors[a][0];
+						double z_dist = z + plat->triangles[1 - i].vectors[b][2] - plat->triangles[i].vectors[a][2];
 
 						double hau;
 
@@ -1222,8 +1224,8 @@ bool try_pu_xz(Platform* plat, double x, double z, double nx, double ny, double 
 					}
 
 					for (int b = 0; b < 3; b++) {
-						double x_dist = x + (*plat->triangles[i].vectors[b])[0] - (*plat->triangles[i].vectors[a])[0];
-						double z_dist = z + (*plat->triangles[i].vectors[b])[2] - (*plat->triangles[i].vectors[a])[2];
+						double x_dist = x + plat->triangles[i].vectors[b][0] - plat->triangles[i].vectors[a][0];
+						double z_dist = z + plat->triangles[i].vectors[b][2] - plat->triangles[i].vectors[a][2];
 
 						double hau;
 
@@ -1241,14 +1243,14 @@ bool try_pu_xz(Platform* plat, double x, double z, double nx, double ny, double 
 				}
 			}
 			else {
-				Vec3s* firstVector = plat->triangles[i].vectors[0];
-				Vec3s* secondVector = i == 0 ? plat->triangles[1 - i].vectors[1] : plat->triangles[1 - i].vectors[2];
+				Vec3s* firstVector = &(plat->triangles[i].vectors[0]);
+				Vec3s* secondVector = i == 0 ? &(plat->triangles[1 - i].vectors[1]) : &(plat->triangles[1 - i].vectors[2]);
 
 				for (int a = 0; a < 3; a++) {
 					double hau; double x_dist; double z_dist;
 
-					x_dist = x + (*firstVector)[0] - (*plat->triangles[i].vectors[a])[0];
-					z_dist = z + (*firstVector)[2] - (*plat->triangles[i].vectors[a])[2];
+					x_dist = x + (*firstVector)[0] - plat->triangles[i].vectors[a][0];
+					z_dist = z + (*firstVector)[2] - plat->triangles[i].vectors[a][2];
 
 					if (x == 0 && z > 0) {
 						//Special case to handle the discontinuity at 0 degrees
@@ -1261,8 +1263,8 @@ bool try_pu_xz(Platform* plat, double x, double z, double nx, double ny, double 
 					min_hau = fmin(min_hau, hau);
 					max_hau = fmax(max_hau, hau);
 
-					x_dist = x + (*secondVector)[0] - (*plat->triangles[i].vectors[a])[0];
-					z_dist = z + (*secondVector)[2] - (*plat->triangles[i].vectors[a])[2];
+					x_dist = x + (*secondVector)[0] - plat->triangles[i].vectors[a][0];
+					z_dist = z + (*secondVector)[2] - plat->triangles[i].vectors[a][2];
 
 					if (x == 0 && z > 0) {
 						//Special case to handle the discontinuity at 0 degrees
@@ -1621,7 +1623,7 @@ void search_normals() {
 			double nx = ((double)i*sample_gap) - norm_norm;
 			
 			Mario mario;
-			Platform plat;
+			Platform plat(platform_idx);
 			Vec2S tri = plat.triangles;
 			
 			printf("nx = %f\n", nx);
@@ -1661,13 +1663,13 @@ void search_normals() {
 				plat.triangles[0].rotate(plat.pos, old_mat, plat.transform);
 				plat.triangles[1].rotate(plat.pos, old_mat, plat.transform);
 
-				double platform_min_x = fmin(fmin(plat.triangles[0].vector1[0], plat.triangles[0].vector2[0]), fmin(plat.triangles[0].vector3[0], plat.triangles[1].vector3[0]));
-				double platform_max_x = fmax(fmax(plat.triangles[0].vector1[0], plat.triangles[0].vector2[0]), fmax(plat.triangles[0].vector3[0], plat.triangles[1].vector3[0]));
-				double platform_min_z = fmin(fmin(plat.triangles[0].vector1[2], plat.triangles[0].vector2[2]), fmin(plat.triangles[0].vector3[2], plat.triangles[1].vector3[2]));
-				double platform_max_z = fmax(fmax(plat.triangles[0].vector1[2], plat.triangles[0].vector2[2]), fmax(plat.triangles[0].vector3[2], plat.triangles[1].vector3[2]));
+				double platform_min_x = fmin(fmin(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmin(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
+				double platform_max_x = fmax(fmax(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmax(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
+				double platform_min_z = fmin(fmin(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmin(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
+				double platform_max_z = fmax(fmax(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmax(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
 
-				double min_y = fmin(lava_y, fmin(fmin(plat.triangles[0].vector1[1], plat.triangles[0].vector2[1]), fmin(plat.triangles[0].vector3[1], plat.triangles[1].vector3[1])));
-				double max_y = fmax(fmax(plat.triangles[0].vector1[1], plat.triangles[0].vector2[1]), fmax(plat.triangles[0].vector3[1], plat.triangles[1].vector3[1]));
+				double min_y = fmin(lava_y, fmin(fmin(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmin(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1])));
+				double max_y = fmax(fmax(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmax(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1]));
 
 				Mat4 T_start = plat.transform;
 
