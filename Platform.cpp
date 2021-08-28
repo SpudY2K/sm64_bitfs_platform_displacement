@@ -55,14 +55,14 @@ void Platform::platform_logic(Mario* m) {
 	my = m->pos[1];
 	mz = m->pos[2];
 
-	dist[0] = mx - -1945.0;
-	dist[1] = my - -3225.0;
-	dist[2] = mz - -715.0;
+	dist[0] = mx - (float)pos[0];
+	dist[1] = my - (float)pos[1];
+	dist[2] = mz - (float)pos[2];
 	linear_mtxf_mul_vec3f(posBeforeRotation, transform, dist);
 
-	dx = mx - -1945.0;
+	dx = mx - (float)pos[0];
 	dy = 500.0f;
-	dz = mz - -715.0;
+	dz = mz - (float)pos[2];
 	d = sqrtf(dx * dx + dy * dy + dz * dz);
 
 	//! Always true since dy = 500, making d >= 500.
