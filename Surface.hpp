@@ -14,41 +14,66 @@ using namespace std;
 class Surface
 {
 public:
-	Vec3s vector1;
-	Vec3s vector2;
-	Vec3s vector3;
-	Vec3s* vectors[3] = { &vector1, &vector2, &vector3 };
+	VecVec3s vectors;
 	Vec3f normal;
 	float originOffset;
 	bool top;
 
-	Surface(bool top) {
-		vector1[0] = -1638;
-		vector1[1] = -2918;
-		vector1[2] = -1021;
+	Surface() {}
 
-		if (top) {
-			vector2[0] = -2251;
-			vector2[1] = -2918;
-			vector2[2] = -1021;
-			vector3[0] = -2251;
-			vector3[1] = -2918;
-			vector3[2] = -408;
+	Surface(bool top) : Surface(0, top) { }
+
+	Surface(int plat_idx, bool top) {
+		if (plat_idx == 0) {
+			vectors[0][0] = -1638;
+			vectors[0][1] = -2918;
+			vectors[0][2] = -1021;
+
+			if (top) {
+				vectors[1][0] = -2251;
+				vectors[1][1] = -2918;
+				vectors[1][2] = -1021;
+				vectors[2][0] = -2251;
+				vectors[2][1] = -2918;
+				vectors[2][2] = -408;
+			}
+			else {
+				vectors[1][0] = -2251;
+				vectors[1][1] = -2918;
+				vectors[1][2] = -408;
+				vectors[2][0] = -1638;
+				vectors[2][1] = -2918;
+				vectors[2][2] = -408;
+			}
 		}
-		else {
-			vector2[0] = -2251;
-			vector2[1] = -2918;
-			vector2[2] = -408;
-			vector3[0] = -1638;
-			vector3[1] = -2918;
-			vector3[2] = -408;
+		else if (plat_idx == 1) {
+			vectors[0][0] = -2559;
+			vectors[0][1] = -2918;
+			vectors[0][2] = -1021;
+
+			if (top) {
+				vectors[1][0] = -3172;
+				vectors[1][1] = -2918;
+				vectors[1][2] = -1021;
+				vectors[2][0] = -3172;
+				vectors[2][1] = -2918;
+				vectors[2][2] = -408;
+			}
+			else {
+				vectors[1][0] = -3172;
+				vectors[1][1] = -2918;
+				vectors[1][2] = -408;
+				vectors[2][0] = -2559;
+				vectors[2][1] = -2918;
+				vectors[2][2] = -408;
+			}
 		}
 
 		normal[0] = 0.0f;
 		normal[1] = 1.0f;
 		normal[2] = 0.0f;
-		
-		originOffset = -vector1[1];
+
+		originOffset = -vectors[0][1];
 
 		this->top = top;
 	}
