@@ -17,68 +17,45 @@ public:
 	VecVec3s vectors;
 	Vec3f normal;
 	float originOffset;
+	int plat_idx;
 	bool top;
 
-	Surface() {}
+	Surface(bool top) {
+		this->top = top;
 
-	Surface(bool top) : Surface(0, top) { }
-
-	Surface(int plat_idx, bool top) {
-		if (plat_idx == 0) {
-			vectors[0][0] = -1638;
-			vectors[0][1] = -2918;
-			vectors[0][2] = -1021;
-
-			if (top) {
-				vectors[1][0] = -2251;
-				vectors[1][1] = -2918;
-				vectors[1][2] = -1021;
-				vectors[2][0] = -2251;
-				vectors[2][1] = -2918;
-				vectors[2][2] = -408;
-			}
-			else {
-				vectors[1][0] = -2251;
-				vectors[1][1] = -2918;
-				vectors[1][2] = -408;
-				vectors[2][0] = -1638;
-				vectors[2][1] = -2918;
-				vectors[2][2] = -408;
-			}
-		}
-		else if (plat_idx == 1) {
-			vectors[0][0] = -2559;
-			vectors[0][1] = -2918;
-			vectors[0][2] = -1021;
-
-			if (top) {
-				vectors[1][0] = -3172;
-				vectors[1][1] = -2918;
-				vectors[1][2] = -1021;
-				vectors[2][0] = -3172;
-				vectors[2][1] = -2918;
-				vectors[2][2] = -408;
-			}
-			else {
-				vectors[1][0] = -3172;
-				vectors[1][1] = -2918;
-				vectors[1][2] = -408;
-				vectors[2][0] = -2559;
-				vectors[2][1] = -2918;
-				vectors[2][2] = -408;
-			}
-		}
+		reset_vectors();
 
 		normal[0] = 0.0f;
 		normal[1] = 1.0f;
 		normal[2] = 0.0f;
 
 		originOffset = -vectors[0][1];
-
-		this->top = top;
 	}
 
-	void rotate(const Vec3s& pivot, const Mat4& old_mat, const Mat4& new_mat);
+	void reset_vectors() {
+		vectors[0][0] = 307;
+		vectors[0][1] = 307;
+		vectors[0][2] = -306;
+
+		if (top) {
+			vectors[1][0] = -306;
+			vectors[1][1] = 307;
+			vectors[1][2] = -306;
+			vectors[2][0] = -306;
+			vectors[2][1] = 307;
+			vectors[2][2] = 307;
+		}
+		else {
+			vectors[1][0] = -306;
+			vectors[1][1] = 307;
+			vectors[1][2] = 307;
+			vectors[2][0] = 307;
+			vectors[2][1] = 307;
+			vectors[2][2] = 307;
+		}
+	}
+
+	void rotate(const Mat4& m);
 	void repr();
 };
 
