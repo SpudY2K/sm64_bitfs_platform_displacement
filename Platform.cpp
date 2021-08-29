@@ -94,8 +94,8 @@ void Platform::platform_logic(Mario* m) {
 	normal[2] = approach_by_increment(dz, normal[2], 0.01f);
 	create_transform_from_normals();
 
-	triangles[0].rotate(pos, old_mat, transform);
-	triangles[1].rotate(pos, old_mat, transform);
+	triangles[0].rotate(transform);
+	triangles[1].rotate(transform);
 
 	// pretty sure you can always assume if here, then mario is on the floor
 	Surface const* floor = find_floor(m->pos, triangles);
