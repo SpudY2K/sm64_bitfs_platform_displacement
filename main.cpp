@@ -27,6 +27,10 @@ const int platform_idx = 0;
 int solution_count = 0;
 
 int validate_solution(Mario* mario, const Vec3f& normals) {
+	if (mario->pos[1] <= lava_y) {
+		return 5;
+	}
+
 	Platform plat(platform_positions[platform_idx][0], platform_positions[platform_idx][1], platform_positions[platform_idx][2]);
 
 	plat.normal = normals;
@@ -37,8 +41,16 @@ int validate_solution(Mario* mario, const Vec3f& normals) {
 
 	plat.platform_logic(mario);
 
+	if (mario->pos[1] <= lava_y) {
+		return 6;
+	}
+
 	if (mario->ground_step(plat.triangles) == 0) {
 		return 1;
+	}
+
+	if (mario->pos[1] <= lava_y) {
+		return 7;
 	}
 
 	if (!find_floor(mario->pos, plat.triangles)) {
