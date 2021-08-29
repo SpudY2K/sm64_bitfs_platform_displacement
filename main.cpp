@@ -20,25 +20,20 @@ const double max_speed = 1000000000.0;
 const double lava_y = -3071.0;
 
 const float normal_offsets[4][3] = { {0.01f, -0.01f, 0.01f}, {-0.01f, -0.01f, 0.01f}, {-0.01f, -0.01f, -0.01f}, {0.01f, -0.01f, -0.01f} };
+
+const short platform_positions[2][3] = { {-1945, -3225, -715}, {-2866, -3225, -715} };
 const int platform_idx = 0;
 
-int solution_count = 0; 
+int solution_count = 0;
 
 int validate_solution(Mario* mario, const Vec3f& normals) {
-	Platform plat(platform_idx);
-
-	plat.normal[0] = 0;
-	plat.normal[1] = 1;
-	plat.normal[2] = 0;
-	plat.create_transform_from_normals();
-
-	Mat4 old_mat = plat.transform;
+	Platform plat(platform_positions[platform_idx][0], platform_positions[platform_idx][1], platform_positions[platform_idx][2]);
 
 	plat.normal = normals;
 
 	plat.create_transform_from_normals();
-	plat.triangles[0].rotate(plat.pos, old_mat, plat.transform);
-	plat.triangles[1].rotate(plat.pos, old_mat, plat.transform);
+	plat.triangles[0].rotate(plat.transform);
+	plat.triangles[1].rotate(plat.transform);
 
 	plat.platform_logic(mario);
 
@@ -49,7 +44,7 @@ int validate_solution(Mario* mario, const Vec3f& normals) {
 	if (!find_floor(mario->pos, plat.triangles)) {
 		return 2;
 	}
-	
+
 	Vec3f pre_tilt_pos = mario->pos;
 
 	plat.platform_logic(mario);
@@ -72,7 +67,7 @@ int validate_solution(Mario* mario, const Vec3f& normals) {
 	I replaced this with the current function that
 	more closely emulates SM64's behaviour.
 
-	I kept it here because it does a nice job of 
+	I kept it here because it does a nice job of
 	documenting the situations where the code can
 	produce invalid solutions, and how they could be
 	resolved with some more work.
@@ -147,7 +142,7 @@ bool validate_solution(Platform* plat, double hau, double pu_x, double pu_z, dou
 					}
 				}
 				else {
-					// Sometimes we end up slightly out of our desired height range, 
+					// Sometimes we end up slightly out of our desired height range,
 					// due being at a slightly different starting height to our initial estimate.
 					// Not sure if this can be avoided easily, may be easier just to ignore these cases.
 
@@ -429,7 +424,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 			min_speed_start_z = start_z;
 			min_speed_end_x = end_x;
 			min_speed_end_z = end_z;
-		} 
+		}
 		else {
 			if (q_steps == 1) {
 				Vec3s* tri1[3] = { firstVector, oppVector, secondVector };
@@ -447,10 +442,10 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 
 						if (t_n >= 0 && t_n <= t_d) {
 							double start_x = (*tri1[a])[0];
-							double end_x = pu_x + (*tri2[b])[0] + ((*tri2[b+1])[0] - (*tri2[b])[0])*(t_n / t_d);
+							double end_x = pu_x + (*tri2[b])[0] + ((*tri2[b + 1])[0] - (*tri2[b])[0])*(t_n / t_d);
 
 							double start_z = (*tri1[a])[2];
-							double end_z = pu_z + (*tri2[b])[2] + ((*tri2[b+1])[2] - (*tri2[b])[2])*(t_n / t_d);
+							double end_z = pu_z + (*tri2[b])[2] + ((*tri2[b + 1])[2] - (*tri2[b])[2])*(t_n / t_d);
 
 							double x_dist = end_x - start_x;
 							double z_dist = end_z - start_z;
@@ -520,10 +515,10 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					t_d = cosA * ((*secondVector)[0] - (*oppVector)[0]) - sinA * ((*secondVector)[2] - (*oppVector)[2]);
 
 					start_x = (*oppVector)[0] + ((*secondVector)[0] - (*oppVector)[0])*(t_n / t_d);
-					end_x = q_step_factor*pu_x + (*firstVector)[0];
+					end_x = q_step_factor * pu_x + (*firstVector)[0];
 
 					start_z = (*oppVector)[2] + ((*secondVector)[2] - (*oppVector)[2])*(t_n / t_d);
-					end_z = q_step_factor*pu_z + (*firstVector)[2];
+					end_z = q_step_factor * pu_z + (*firstVector)[2];
 
 				}
 				else if (t_n > t_d) {
@@ -531,17 +526,17 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					t_d = cosA * ((*firstVector)[0] - (*oppVector)[0]) - sinA * ((*firstVector)[2] - (*oppVector)[2]);
 
 					start_x = (*oppVector)[0] + ((*firstVector)[0] - (*oppVector)[0])*(t_n / t_d);
-					end_x = q_step_factor*pu_x + (*secondVector)[0];
+					end_x = q_step_factor * pu_x + (*secondVector)[0];
 
 					start_z = (*oppVector)[2] + ((*firstVector)[2] - (*oppVector)[2])*(t_n / t_d);
-					end_z = q_step_factor*pu_z + (*secondVector)[2];
+					end_z = q_step_factor * pu_z + (*secondVector)[2];
 				}
 				else {
 					start_x = (*oppVector)[0];
-					end_x = q_step_factor*pu_x + (*firstVector)[0] + ((*secondVector)[0] - (*firstVector)[0])*(t_n / t_d);
+					end_x = q_step_factor * pu_x + (*firstVector)[0] + ((*secondVector)[0] - (*firstVector)[0])*(t_n / t_d);
 
 					start_z = (*oppVector)[2];
-					end_z = q_step_factor*pu_z + (*firstVector)[2] + ((*secondVector)[2] - (*firstVector)[2])*(t_n / t_d);
+					end_z = q_step_factor * pu_z + (*firstVector)[2] + ((*secondVector)[2] - (*firstVector)[2])*(t_n / t_d);
 				}
 
 				double x_dist = (end_x - start_x) / q_step_factor;
@@ -701,10 +696,10 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 				t_d = cosA * ((*secondVector)[0] - (*oppVector)[0]) - sinA * ((*secondVector)[2] - (*oppVector)[2]);
 
 				start_x = (*oppVector)[0] + ((*secondVector)[0] - (*oppVector)[0])*(t_n / t_d);
-				end_x = q_step_factor*pu_x + (*firstVector)[0];
+				end_x = q_step_factor * pu_x + (*firstVector)[0];
 
 				start_z = (*oppVector)[2] + ((*secondVector)[2] - (*oppVector)[2])*(t_n / t_d);
-				end_z = q_step_factor*pu_z + (*firstVector)[2];
+				end_z = q_step_factor * pu_z + (*firstVector)[2];
 
 			}
 			else if (t_n > t_d) {
@@ -712,17 +707,17 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 				t_d = cosA * ((*firstVector)[0] - (*oppVector)[0]) - sinA * ((*firstVector)[2] - (*oppVector)[2]);
 
 				start_x = (*oppVector)[0] + ((*firstVector)[0] - (*oppVector)[0])*(t_n / t_d);
-				end_x = q_step_factor*pu_x + (*secondVector)[0];
+				end_x = q_step_factor * pu_x + (*secondVector)[0];
 
 				start_z = (*oppVector)[2] + ((*firstVector)[2] - (*oppVector)[2])*(t_n / t_d);
-				end_z = q_step_factor*pu_z + (*secondVector)[2];
+				end_z = q_step_factor * pu_z + (*secondVector)[2];
 			}
 			else {
 				start_x = (*oppVector)[0];
-				end_x = q_step_factor*pu_x + (*firstVector)[0] + ((*secondVector)[0] - (*firstVector)[0])*(t_n / t_d);
+				end_x = q_step_factor * pu_x + (*firstVector)[0] + ((*secondVector)[0] - (*firstVector)[0])*(t_n / t_d);
 
 				start_z = (*oppVector)[2];
-				end_z = q_step_factor*pu_z + (*firstVector)[2] + ((*secondVector)[2] - (*firstVector)[2])*(t_n / t_d);
+				end_z = q_step_factor * pu_z + (*firstVector)[2] + ((*secondVector)[2] - (*firstVector)[2])*(t_n / t_d);
 			}
 
 			double x_dist = (end_x - start_x) / q_step_factor;
@@ -912,16 +907,19 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 			float end_z = start_z;
 
 			// Calculate our final position with quarter steps
-			for (int j = 0; j < q_steps-1; j++) {
-				end_x = end_x + gSineTable[(int)hau] * plat->triangles[tri_idx].normal[1] * (speed / 4.0f);
-				end_z = end_z + gCosineTable[(int)hau] * plat->triangles[tri_idx].normal[1] * (speed / 4.0f);
+			float x_vel = speed * gSineTable[(int)hau];
+			float z_vel = speed * gCosineTable[(int)hau];
+
+			for (int j = 0; j < q_steps - 1; j++) {
+				end_x = end_x + plat->triangles[tri_idx].normal[1] * (x_vel / 4.0f);
+				end_z = end_z + plat->triangles[tri_idx].normal[1] * (z_vel / 4.0f);
 			}
 
 			bool tri_test = on_triangle(plat->triangles[tri_idx], end_x, start_y, end_z);
 
 			if (tri_test) {
-				end_x = end_x + gSineTable[(int)hau] * plat->triangles[tri_idx].normal[1] * (speed / 4.0f);
-				end_z = end_z + gCosineTable[(int)hau] * plat->triangles[tri_idx].normal[1] * (speed / 4.0f);
+				end_x = end_x + plat->triangles[tri_idx].normal[1] * (x_vel / 4.0f);
+				end_z = end_z + plat->triangles[tri_idx].normal[1] * (z_vel / 4.0f);
 
 				bool tri_test1 = on_triangle(plat->triangles[tri_idx], end_x, start_y, end_z);
 				bool tri_test2 = on_triangle(plat->triangles[1 - tri_idx], end_x, start_y, end_z);
@@ -936,7 +934,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 				// Currently we have Mario's position after first tilt,
 				// so track backwards to find initial position.
 
-				Platform pre_plat(platform_idx);
+				Platform pre_plat(platform_positions[platform_idx][0], platform_positions[platform_idx][1], platform_positions[platform_idx][2]);
 				Mat4 t_diff;
 
 				for (int i = 0; i < 8; i++) {
@@ -956,7 +954,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					pre_plat.normal[0] = initial_nx;
 					pre_plat.normal[1] = initial_ny;
 					pre_plat.normal[2] = initial_nz;
-					
+
 					pre_plat.create_transform_from_normals();
 
 					t_diff[0][0] = plat->transform[0][0] - pre_plat.transform[0][0];
@@ -993,19 +991,19 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 
 					if (coeff1a[1] != 0.0) {
 						coeff1a[0] = coeff1a[0] / coeff1a[1];
-						coeff1a[1] = 1.0;
 						coeff1a[2] = coeff1a[2] / coeff1a[1];
 						coeff1a[3] = coeff1a[3] / coeff1a[1];
+						coeff1a[1] = 1.0;
 
 						coeff1b[0] -= coeff1b[1] * coeff1a[0];
-						coeff1b[1] = 0.0;
 						coeff1b[2] -= coeff1b[1] * coeff1a[2];
 						coeff1b[3] -= coeff1b[1] * coeff1a[3];
+						coeff1b[1] = 0.0;
 
 						coeff1c[0] -= coeff1c[1] * coeff1a[0];
-						coeff1c[1] = 0.0;
 						coeff1c[2] -= coeff1c[1] * coeff1a[2];
 						coeff1c[3] -= coeff1c[1] * coeff1a[3];
+						coeff1c[1] = 0.0;
 					}
 
 					if (abs(coeff1b[2]) < abs(coeff1c[2])) {
@@ -1017,18 +1015,18 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					if (coeff1b[2] != 0.0) {
 						coeff1b[0] = coeff1b[0] / coeff1b[2];
 						coeff1b[1] = coeff1b[1] / coeff1b[2];
-						coeff1b[2] = 1.0;
 						coeff1b[3] = coeff1b[3] / coeff1b[2];
+						coeff1b[2] = 1.0;
 
 						coeff1a[0] -= coeff1a[2] * coeff1b[0];
 						coeff1a[1] -= coeff1a[2] * coeff1b[1];
-						coeff1a[2] = 0.0;
 						coeff1a[3] -= coeff1a[2] * coeff1b[3];
+						coeff1a[2] = 0.0;
 
 						coeff1c[0] -= coeff1c[2] * coeff1b[0];
 						coeff1c[1] -= coeff1c[2] * coeff1b[1];
-						coeff1c[2] = 0.0;
 						coeff1c[3] -= coeff1c[2] * coeff1b[3];
+						coeff1c[2] = 0.0;
 					}
 
 					if (coeff1c[3] != 0.0) {
@@ -1051,7 +1049,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					float original_x = (float)coeff1a[0];
 					float original_y = (float)coeff1b[0];
 					float original_z = (float)coeff1c[0];
-
+					
 					Vec3f dist;
 
 					dist[0] = original_x - (float)plat->pos[0];
@@ -1072,26 +1070,30 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					float next_ny = approach_by_increment(dy, initial_ny, 0.01f);
 					float next_nz = approach_by_increment(dz, initial_nz, 0.01f);
 
+					//int s_idx = validate_solution_i({ original_x, original_y, original_z }, { initial_nx, initial_ny, initial_nz }, speed, (int)(16.0 * hau));
+
 					if (fabs(next_nx - nx) < 0.001f && fabs(next_ny - ny) < 0.001f && fabs(next_nz - nz) < 0.001f) {
 						// Rotate platform to second frame position
 						// We need this to find the y normal for the adjusted speed calculation
-						pre_plat.triangles[0].rotate(pre_plat.pos, old_mat, pre_plat.transform);
-						pre_plat.triangles[1].rotate(pre_plat.pos, old_mat, pre_plat.transform);
+						pre_plat.triangles[0].rotate(pre_plat.transform);
+						pre_plat.triangles[1].rotate(pre_plat.transform);
 						old_mat = pre_plat.transform;
 						pre_plat.normal = { next_nx, next_ny, next_nz };
+
 						pre_plat.create_transform_from_normals();
-						pre_plat.triangles[0].rotate(pre_plat.pos, old_mat, pre_plat.transform);
-						pre_plat.triangles[1].rotate(pre_plat.pos, old_mat, pre_plat.transform);
+						pre_plat.triangles[0].rotate(pre_plat.transform);
+						pre_plat.triangles[1].rotate(pre_plat.transform);
 
 						// Adjust the estimated speed. 
 						// Triangle normal will have changed, so we need to adjust our speed to account for this.
 						// This triangle normal will probably be different if this is used in game,
 						// in which case this would need to be adjusted again.
-						float adj_speed = (float)((double)speed * ((double)plat->triangles[tri_idx].normal[1]/(double)pre_plat.triangles[tri_idx].normal[1]));
+						float adj_speed = (float)((double)speed * ((double)plat->triangles[tri_idx].normal[1] / (double)pre_plat.triangles[tri_idx].normal[1]));
 
 						// Validate the final parameter set.
 						// Can fail for a number of reasons, see original
 						// validate_solution for more details
+
 						const Vec3f v_normal = { (float)initial_nx, (float)initial_ny, (float)initial_nz };
 						Mario v_mario({ original_x, original_y, original_z }, adj_speed, (int)(16.0 * hau));
 
@@ -1414,7 +1416,7 @@ bool try_pu_x(Platform* plat, Mat4 T_start, Mat4 T_tilt, double x, double x1_min
 	double disp_leeway = abs(platform_min_x - platform_max_x) + abs(platform_min_z - platform_max_z);
 
 	// Search backwards from z=0
-	for (double z = fmin(fmin(0, max_z_pu), - min_pu_oob_z); z + 8192 > min_z_pu; z -= pu_gap) {
+	for (double z = fmin(fmin(0, max_z_pu), -min_pu_oob_z); z + 8192 > min_z_pu; z -= pu_gap) {
 		double base_platform_displacement_x = x * T_diff00 + z * T_diff20;
 		double base_platform_displacement_z = x * T_diff02 + z * T_diff22;
 
@@ -1572,7 +1574,7 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 	double disp_leeway = abs(platform_min_x - platform_max_x) + abs(platform_min_z - platform_max_z);
 
 	// Search backwards from x=0
-	for (double x = fmin(fmin(0, max_x_pu), - min_pu_oob_x); x + 8192 > min_x_pu; x -= pu_gap) {
+	for (double x = fmin(fmin(0, max_x_pu), -min_pu_oob_x); x + 8192 > min_x_pu; x -= pu_gap) {
 		double base_platform_displacement_x = x * T_diff00 + z * T_diff20;
 		double base_platform_displacement_z = x * T_diff02 + z * T_diff22;
 
@@ -1610,7 +1612,6 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 
 void search_normals() {
 	myfile.open("Normals.txt");
-
 	const double norm_norm = 0.95;
 	const int n_samples = 1000;
 	const double sample_gap = 2.0*norm_norm / (double)n_samples;
@@ -1618,167 +1619,146 @@ void search_normals() {
 	const double min_ny = 0.01;
 
 	//for (double norm_norm=0.3; norm_norm<=1.5; norm_norm+=0.01) {
-		#pragma omp parallel for schedule(dynamic, 1)
-		for (int i = 0; i <= n_samples; i++) {
-			double nx = ((double)i*sample_gap) - norm_norm;
-			
-			Mario mario;
-			Platform plat(platform_idx);
-			Vec2S tri = plat.triangles;
-			
-			printf("nx = %f\n", nx);
-			double max_nz_dist = floor(sqrt(norm_norm*norm_norm - nx * nx - min_ny * min_ny) / sample_gap)*sample_gap;
-			for (double nz = -max_nz_dist; nz <= max_nz_dist; nz += sample_gap) {
-				solution_count = 0;
+	//double nx; double nz;
+	//while (true) {
+	#pragma omp parallel for schedule(dynamic, 1)
+	for (int i = 0; i <= n_samples; i++) {
+		Mario mario;
+		Platform plat(platform_positions[platform_idx][0], platform_positions[platform_idx][1], platform_positions[platform_idx][2]);
+		Vec2S tri = plat.triangles;
 
-				double ny = sqrtf(powf((float)norm_norm, 2) - powf((float)nx, 2) - powf((float)nz, 2));
+		double nx = ((double)i*sample_gap) - norm_norm;
 
-				// Tilt angle cut-offs
-				// These are the yaw boundaries where the platform tilt 
-				// switches direction. Directions match normal_offsets:
-				// Between a[0] and a[1]: +x +z
-				// Between a[1] and a[2]: -x +z
-				// Between a[2] and a[3]: -x -z
-				// Between a[3] and a[0]: +x -z
-				double a[4];
-				a[0] = atan2(nz, sqrt(1 - nz * nz));
-				a[1] = atan2(sqrt(1 - nx * nx), nx);
-				a[2] = M_PI - a[0];
-				a[3] = 2 * M_PI - a[1];
+		printf("nx = %f\n", nx);
+		double max_nz_dist = floor(sqrt(norm_norm * norm_norm - nx * nx - min_ny * min_ny) / sample_gap)*sample_gap;
+		for (double nz = -max_nz_dist; nz <= max_nz_dist; nz += sample_gap) {
+			solution_count = 0;
 
-				plat.normal[0] = 0;
-				plat.normal[1] = 1;
-				plat.normal[2] = 0;
+			double ny = sqrtf(powf((float)norm_norm, 2) - powf((float)nx, 2) - powf((float)nz, 2));
 
+			// Tilt angle cut-offs
+			// These are the yaw boundaries where the platform tilt 
+			// switches direction. Directions match normal_offsets:
+			// Between a[0] and a[1]: +x +z
+			// Between a[1] and a[2]: -x +z
+			// Between a[2] and a[3]: -x -z
+			// Between a[3] and a[0]: +x -z
+			double a[4];
+			a[0] = atan2(nz, sqrt(1 - nz * nz));
+			a[1] = atan2(sqrt(1 - nx * nx), nx);
+			a[2] = M_PI - a[0];
+			a[3] = 2 * M_PI - a[1];
+
+			plat.normal[0] = 0;
+			plat.normal[1] = 1;
+			plat.normal[2] = 0;
+
+			plat.create_transform_from_normals();
+
+			Mat4 old_mat = plat.transform;
+
+			plat.normal[0] = (float)nx;
+			plat.normal[1] = (float)ny;
+			plat.normal[2] = (float)nz;
+
+			plat.create_transform_from_normals();
+
+			plat.triangles[0].rotate(plat.transform);
+			plat.triangles[1].rotate(plat.transform);
+
+			double platform_min_x = fmin(fmin(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmin(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
+			double platform_max_x = fmax(fmax(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmax(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
+			double platform_min_z = fmin(fmin(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmin(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
+			double platform_max_z = fmax(fmax(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmax(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
+
+			double min_y = fmin(lava_y, fmin(fmin(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmin(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1])));
+			double max_y = fmax(fmax(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmax(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1]));
+
+			Mat4 T_start = plat.transform;
+
+			// Try to find solutions for each possible platform tilt direction
+			for (int i = 0; i < 4; i++) {
+				plat.normal[0] += normal_offsets[i][0];
+				plat.normal[1] += normal_offsets[i][1];
+				plat.normal[2] += normal_offsets[i][2];
 				plat.create_transform_from_normals();
 
-				Mat4 old_mat = plat.transform;
-
-				plat.normal[0] = (float)nx;
-				plat.normal[1] = (float)ny;
-				plat.normal[2] = (float)nz;
-
+				Mat4 T_tilt = plat.transform;
+				plat.normal = { (float)nx, (float)ny, (float)nz };
 				plat.create_transform_from_normals();
 
-				plat.triangles[0].rotate(plat.pos, old_mat, plat.transform);
-				plat.triangles[1].rotate(plat.pos, old_mat, plat.transform);
+				double T_diff01 = T_tilt[0][1] - T_start[0][1];
+				double T_diff11 = T_tilt[1][1] - T_start[1][1];
+				double T_diff21 = T_tilt[2][1] - T_start[2][1];
+				double r_min = lower_y - (1 + T_diff11)*max_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
+				double r_max = upper_y - (1 + T_diff11)*min_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
 
-				double platform_min_x = fmin(fmin(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmin(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
-				double platform_max_x = fmax(fmax(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmax(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
-				double platform_min_z = fmin(fmin(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmin(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
-				double platform_max_z = fmax(fmax(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmax(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
+				// z = mx + c_min
+				// z = mx + c_max
+				//
+				// PU platforms occurring between these lines will (usually) 
+				// give a y displacement within our desired range.
+				double m = -T_diff01 / T_diff21;
+				double c_min; double c_max;
 
-				double min_y = fmin(lava_y, fmin(fmin(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmin(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1])));
-				double max_y = fmax(fmax(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmax(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1]));
+				if (T_diff21 < 0) {
+					c_min = r_max / T_diff21;
+					c_max = r_min / T_diff21;
+				}
+				else {
+					c_min = r_min / T_diff21;
+					c_max = r_max / T_diff21;
+				}
 
-				Mat4 T_start = plat.transform;
+				// Find intersection between y displacement lines and 
+				// good platform tilt angle ranges.
+				//
+				// Intersection forms a polygon that may (or may not)
+				// stretch to infinity in one direction.
+				// 
+				// Find the x coordinates where displacement lines and 
+				// platform tilt lines intersect.
+				//
+				// Non-intersecting lines have x coordinate set to NaN. 
+				double a1_cos = cos(a[i]);
+				double a2_cos = cos(a[(i + 1) % 4]);
 
-				// Try to find solutions for each possible platform tilt direction
-				for (int i = 0; i < 4; i++) {
-					plat.normal[0] += normal_offsets[i][0];
-					plat.normal[1] += normal_offsets[i][1];
-					plat.normal[2] += normal_offsets[i][2];
-					plat.create_transform_from_normals();
+				double x1_min; double x1_max; double x2_min; double x2_max;
 
-					Mat4 T_tilt = plat.transform;
-					plat.normal = { (float)nx, (float)ny, (float)nz };
-					plat.create_transform_from_normals();
-
-					double T_diff01 = T_tilt[0][1] - T_start[0][1];
-					double T_diff11 = T_tilt[1][1] - T_start[1][1];
-					double T_diff21 = T_tilt[2][1] - T_start[2][1];
-					double r_min = lower_y - (1 + T_diff11)*max_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
-					double r_max = upper_y - (1 + T_diff11)*min_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
-
-					// z = mx + c_min
-					// z = mx + c_max
-					//
-					// PU platforms occurring between these lines will (usually) 
-					// give a y displacement within our desired range.
-					double m = -T_diff01 / T_diff21;
-					double c_min; double c_max;
-
-					if (T_diff21 < 0) {
-						c_min = r_max / T_diff21;
-						c_max = r_min / T_diff21;
-					}
-					else {
-						c_min = r_min / T_diff21;
-						c_max = r_max / T_diff21;
-					}
-
-					// Find intersection between y displacement lines and 
-					// good platform tilt angle ranges.
-					//
-					// Intersection forms a polygon that may (or may not)
-					// stretch to infinity in one direction.
-					// 
-					// Find the x coordinates where displacement lines and 
-					// platform tilt lines intersect.
-					//
-					// Non-intersecting lines have x coordinate set to NaN. 
-					double a1_cos = cos(a[i]);
-					double a2_cos = cos(a[(i + 1) % 4]);
-
-					double x1_min; double x1_max; double x2_min; double x2_max;
-
-					if (nx == 0) {
-						if (i % 2 == 0) {
-							x1_min = (c_min + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
-							x1_max = (c_max + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
-							x2_min = 0;
-							x2_max = 0;
-
-							if (a1_cos > 0 && x1_min < plat.pos[0] || a1_cos < 0 && x1_min > plat.pos[0]) {
-								x1_min = NAN;
-							}
-
-							if (a1_cos > 0 && x1_max < plat.pos[0] || a1_cos < 0 && x1_max > plat.pos[0]) {
-								x1_max = NAN;
-							}
-
-							if (nz > 0 && c_min < plat.pos[0] || nz < 0 && c_min > plat.pos[0]) {
-								x2_min = NAN;
-							}
-
-							if (nz > 0 && c_max < plat.pos[0] || nz < 0 && c_max > plat.pos[0]) {
-								x2_max = NAN;
-							}
-						}
-						else {
-							x1_min = 0;
-							x1_max = 0;
-							x2_min = (c_min + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
-							x2_max = (c_max + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
-
-							if (nz > 0 && c_min < plat.pos[0] || nz < 0 && c_min > plat.pos[0]) {
-								x1_min = NAN;
-							}
-
-							if (nz > 0 && c_max < plat.pos[0] || nz < 0 && c_max > plat.pos[0]) {
-								x1_max = NAN;
-							}
-
-							if (a2_cos > 0 && x2_min < plat.pos[0] || a2_cos < 0 && x2_min > plat.pos[0]) {
-								x2_min = NAN;
-							}
-
-							if (a2_cos > 0 && x2_max < plat.pos[0] || a2_cos < 0 && x2_max > plat.pos[0]) {
-								x2_max = NAN;
-							}
-						}
-					}
-					else {
+				if (nx == 0) {
+					if (i % 2 == 0) {
 						x1_min = (c_min + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
 						x1_max = (c_max + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
-						x2_min = (c_min + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
-						x2_max = (c_max + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+						x2_min = 0;
+						x2_max = 0;
 
 						if (a1_cos > 0 && x1_min < plat.pos[0] || a1_cos < 0 && x1_min > plat.pos[0]) {
 							x1_min = NAN;
 						}
 
 						if (a1_cos > 0 && x1_max < plat.pos[0] || a1_cos < 0 && x1_max > plat.pos[0]) {
+							x1_max = NAN;
+						}
+
+						if (nz > 0 && c_min < plat.pos[0] || nz < 0 && c_min > plat.pos[0]) {
+							x2_min = NAN;
+						}
+
+						if (nz > 0 && c_max < plat.pos[0] || nz < 0 && c_max > plat.pos[0]) {
+							x2_max = NAN;
+						}
+					}
+					else {
+						x1_min = 0;
+						x1_max = 0;
+						x2_min = (c_min + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+						x2_max = (c_max + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+
+						if (nz > 0 && c_min < plat.pos[0] || nz < 0 && c_min > plat.pos[0]) {
+							x1_min = NAN;
+						}
+
+						if (nz > 0 && c_max < plat.pos[0] || nz < 0 && c_max > plat.pos[0]) {
 							x1_max = NAN;
 						}
 
@@ -1790,148 +1770,170 @@ void search_normals() {
 							x2_max = NAN;
 						}
 					}
+				}
+				else {
+					x1_min = (c_min + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
+					x1_max = (c_max + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
+					x2_min = (c_min + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+					x2_max = (c_max + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+
+					if (a1_cos > 0 && x1_min < plat.pos[0] || a1_cos < 0 && x1_min > plat.pos[0]) {
+						x1_min = NAN;
+					}
+
+					if (a1_cos > 0 && x1_max < plat.pos[0] || a1_cos < 0 && x1_max > plat.pos[0]) {
+						x1_max = NAN;
+					}
+
+					if (a2_cos > 0 && x2_min < plat.pos[0] || a2_cos < 0 && x2_min > plat.pos[0]) {
+						x2_min = NAN;
+					}
+
+					if (a2_cos > 0 && x2_max < plat.pos[0] || a2_cos < 0 && x2_max > plat.pos[0]) {
+						x2_max = NAN;
+					}
+				}
 
 
-					// Mario's movement can end on any of his quarter steps, as long as the next move puts him 
-					// out of bounds (or is the last step). So we need to consider PU movement for each possible
-					// final quarter step
+				// Mario's movement can end on any of his quarter steps, as long as the next move puts him 
+				// out of bounds (or is the last step). So we need to consider PU movement for each possible
+				// final quarter step
 
-					// If the normals match then you can't force Mario out of bounds after his final q step.
-					// Therefore, only 4 q_steps are possible.
-					int min_q_steps = (plat.triangles[0].normal[1] == plat.triangles[1].normal[1]) ? 4 : 1;
+				// If the normals match then you can't force Mario out of bounds after his final q step.
+				// Therefore, only 4 q_steps are possible.
+				int min_q_steps = (plat.triangles[0].normal[1] == plat.triangles[1].normal[1]) ? 4 : 1;
 
-					for (int q = 4; q >= min_q_steps; q--) {
-						double pu_gap = 65536.0 * q;
+				for (int q = 4; q >= min_q_steps; q--) {
+					double pu_gap = 65536.0 * q;
 
-						// Start searching for PUs in the polygon.
-						//
-						// We want to minimise speed, so we search outwards
-						// from the point closest to the real platform.
-						//
-						// This will be at the x = 0 (if abs(m) < 1)
-						// or z = 0 (if abs(m) > 1)
-						if (abs(m) < 1) {
-							// Find x limits of polygon
-							double poly_x_start; double poly_x_end;
+					// Start searching for PUs in the polygon.
+					//
+					// We want to minimise speed, so we search outwards
+					// from the point closest to the real platform.
+					//
+					// This will be at the x = 0 (if abs(m) < 1)
+					// or z = 0 (if abs(m) > 1)
+					if (abs(m) < 1) {
+						// Find x limits of polygon
+						double poly_x_start; double poly_x_end;
 
-							if (!isnan(x1_min) && !isnan(x1_max)) {
-								if (!isnan(x2_min) && !isnan(x2_max)) {
-									poly_x_start = fmin(fmin(x1_min, x1_max), fmin(x2_min, x2_max));
-									poly_x_end = fmax(fmax(x1_min, x1_max), fmax(x2_min, x2_max));
-								}
-								else {
-									if (c_min > 0) {
-										poly_x_start = -INFINITY;
-										poly_x_end = fmax(x1_min, x1_max);
-									}
-									else {
-										poly_x_start = fmin(x1_min, x1_max);
-										poly_x_end = INFINITY;
-									}
-								}
-							}
-							else if (!isnan(x2_min) && !isnan(x2_max)) {
-								if (c_min > 0) {
-									poly_x_start = fmin(x2_min, x2_max);
-									poly_x_end = INFINITY;
-								}
-								else {
-									poly_x_start = -INFINITY;
-									poly_x_end = fmax(x2_min, x2_max);
-								}
+						if (!isnan(x1_min) && !isnan(x1_max)) {
+							if (!isnan(x2_min) && !isnan(x2_max)) {
+								poly_x_start = fmin(fmin(x1_min, x1_max), fmin(x2_min, x2_max));
+								poly_x_end = fmax(fmax(x1_min, x1_max), fmax(x2_min, x2_max));
 							}
 							else {
-								continue;
-							}
-
-							double first_x_pu = ceil((poly_x_start - platform_max_x) / pu_gap)*pu_gap;
-							double last_x_pu = floor((poly_x_end - platform_min_x) / pu_gap)*pu_gap;
-
-							// Search backwards from x=0
-							for (double x = fmin(0, last_x_pu); x + platform_min_x > poly_x_start; x -= pu_gap) {
-								if (!try_pu_x(&plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
-									break;
+								if (c_min > 0) {
+									poly_x_start = -INFINITY;
+									poly_x_end = fmax(x1_min, x1_max);
+								}
+								else {
+									poly_x_start = fmin(x1_min, x1_max);
+									poly_x_end = INFINITY;
 								}
 							}
-
-							// Search forwards from x>0
-							for (double x = fmax(pu_gap, first_x_pu); x - platform_max_x < poly_x_end; x += pu_gap) {
-								if (!try_pu_x(&plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
-									break;
-								}
+						}
+						else if (!isnan(x2_min) && !isnan(x2_max)) {
+							if (c_min > 0) {
+								poly_x_start = fmin(x2_min, x2_max);
+								poly_x_end = INFINITY;
+							}
+							else {
+								poly_x_start = -INFINITY;
+								poly_x_end = fmax(x2_min, x2_max);
 							}
 						}
 						else {
-							// Calculate z coordinates of intersection points
-							double z1_min = tan(a[i])*x1_min + plat.pos[2] - tan(a[i])*plat.pos[0];
-							double z1_max = tan(a[i])*x1_max + plat.pos[2] - tan(a[i])*plat.pos[0];
-							double z2_min = tan(a[(i + 1) % 4])*x2_min + plat.pos[2] - tan(a[(i + 1) % 4])*plat.pos[0];
-							double z2_max = tan(a[(i + 1) % 4])*x2_max + plat.pos[2] - tan(a[(i + 1) % 4])*plat.pos[0];
+							continue;
+						}
 
-							// Find z limits of polygon
-							double poly_z_start; double poly_z_end;
+						double first_x_pu = ceil((poly_x_start - platform_max_x) / pu_gap)*pu_gap;
+						double last_x_pu = floor((poly_x_end - platform_min_x) / pu_gap)*pu_gap;
 
-							if (!isnan(z1_min) && !isnan(z1_max)) {
-								if (!isnan(z2_min) && !isnan(z2_max)) {
-									poly_z_start = fmin(fmin(z1_min, z1_max), fmin(z2_min, z2_max));
-									poly_z_end = fmax(fmax(z1_min, z1_max), fmax(z2_min, z2_max));
-								}
-								else {
-									if (c_min / m > 0) {
-										poly_z_start = -INFINITY;
-										poly_z_end = fmax(z1_min, z1_max);
-									}
-									else {
-										poly_z_start = fmin(z1_min, z1_max);
-										poly_z_end = INFINITY;
-									}
-								}
+						// Search backwards from x=0
+						for (double x = fmin(0, last_x_pu); x + platform_min_x > poly_x_start; x -= pu_gap) {
+							if (!try_pu_x(&plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+								break;
 							}
-							else if (!isnan(z2_min) && !isnan(z2_max)) {
-								if (c_min / m > 0) {
-									poly_z_start = fmin(z2_min, z2_max);
-									poly_z_end = INFINITY;
-								}
-								else {
-									poly_z_start = -INFINITY;
-									poly_z_end = fmax(z2_min, z2_max);
-								}
-							}
-							else {
-								continue;
-							}
+						}
 
-							double first_z_pu = ceil((poly_z_start - platform_max_z) / pu_gap)*pu_gap;
-							double last_z_pu = floor((poly_z_end - platform_min_z) / pu_gap)*pu_gap;
-
-							// Search backwards from z=0
-							for (double z = fmin(0, last_z_pu); z + platform_min_z > poly_z_start; z -= pu_gap) {
-								if (!try_pu_z(&plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
-									break;
-								}
+						// Search forwards from x>0
+						for (double x = fmax(pu_gap, first_x_pu); x - platform_max_x < poly_x_end; x += pu_gap) {
+							if (!try_pu_x(&plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+								break;
 							}
-
-							// Search forwards from z>0
-							for (double z = fmax(pu_gap, first_z_pu); z - platform_max_z < poly_z_end; z += pu_gap) {
-								if (!try_pu_z(&plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
-									break;
-								}
-							}
-							
 						}
 					}
-				}
-				plat.triangles = tri;
-				
-				if (solution_count > 0) {
-					#pragma omp critical 
-					{
-						myfile << nx << ", " << nz << ", " << solution_count << "\n";
+					else {
+						// Calculate z coordinates of intersection points
+						double z1_min = tan(a[i])*x1_min + plat.pos[2] - tan(a[i])*plat.pos[0];
+						double z1_max = tan(a[i])*x1_max + plat.pos[2] - tan(a[i])*plat.pos[0];
+						double z2_min = tan(a[(i + 1) % 4])*x2_min + plat.pos[2] - tan(a[(i + 1) % 4])*plat.pos[0];
+						double z2_max = tan(a[(i + 1) % 4])*x2_max + plat.pos[2] - tan(a[(i + 1) % 4])*plat.pos[0];
+
+						// Find z limits of polygon
+						double poly_z_start; double poly_z_end;
+
+						if (!isnan(z1_min) && !isnan(z1_max)) {
+							if (!isnan(z2_min) && !isnan(z2_max)) {
+								poly_z_start = fmin(fmin(z1_min, z1_max), fmin(z2_min, z2_max));
+								poly_z_end = fmax(fmax(z1_min, z1_max), fmax(z2_min, z2_max));
+							}
+							else {
+								if (c_min / m > 0) {
+									poly_z_start = -INFINITY;
+									poly_z_end = fmax(z1_min, z1_max);
+								}
+								else {
+									poly_z_start = fmin(z1_min, z1_max);
+									poly_z_end = INFINITY;
+								}
+							}
+						}
+						else if (!isnan(z2_min) && !isnan(z2_max)) {
+							if (c_min / m > 0) {
+								poly_z_start = fmin(z2_min, z2_max);
+								poly_z_end = INFINITY;
+							}
+							else {
+								poly_z_start = -INFINITY;
+								poly_z_end = fmax(z2_min, z2_max);
+							}
+						}
+						else {
+							continue;
+						}
+
+						double first_z_pu = ceil((poly_z_start - platform_max_z) / pu_gap)*pu_gap;
+						double last_z_pu = floor((poly_z_end - platform_min_z) / pu_gap)*pu_gap;
+
+						// Search backwards from z=0
+						for (double z = fmin(0, last_z_pu); z + platform_min_z > poly_z_start; z -= pu_gap) {
+							if (!try_pu_z(&plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+								break;
+							}
+						}
+
+						// Search forwards from z>0
+						for (double z = fmax(pu_gap, first_z_pu); z - platform_max_z < poly_z_end; z += pu_gap) {
+							if (!try_pu_z(&plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+								break;
+							}
+						}
+
 					}
 				}
 			}
+			plat.triangles = tri;
+
+			if (solution_count > 0) {
+				#pragma omp critical 
+				{
+					myfile << nx << ", " << nz << ", " << solution_count << "\n";
+				}
+			}
 		}
-	//}
+	}
 
 	myfile.close();
 }
