@@ -13,28 +13,20 @@ using namespace std;
 class Platform
 {
 public:
-	Vec3s pos;
+	Vec3s pos = { 0, 0, 0 };
 	Vec3f normal = { 0, 1, 0 };
 	Mat4 transform = { {} };
-	Vec2S triangles;
+	Vec2S triangles = { Surface(true), Surface(false) };
 
-	Platform() : Platform(0) { }
-
-	Platform(const int plat_idx) {
-		if (plat_idx == 0) {
-			pos[0] = -1945;
-			pos[1] = -3225;
-			pos[2] = -715;
-		}
-		else {
-			pos[0] = -2866;
-			pos[1] = -3225;
-			pos[2] = -715;
-		}
-
-		triangles = { Surface(plat_idx, true), Surface(plat_idx, false) };
+	Platform(int16_t x, int16_t y, int16_t z) {
+		pos[0] = x;
+		pos[1] = y;
+		pos[2] = z;
 
 		create_transform_from_normals();
+
+		triangles[0].rotate(transform);
+		triangles[1].rotate(transform);
 	}
 
 	void create_transform_from_normals();
