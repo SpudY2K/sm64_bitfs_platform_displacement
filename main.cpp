@@ -1082,9 +1082,14 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					float next_ny = approach_by_increment(dy, initial_ny, 0.01f);
 					float next_nz = approach_by_increment(dz, initial_nz, 0.01f);
 
-					//int s_idx = validate_solution_i({ original_x, original_y, original_z }, { initial_nx, initial_ny, initial_nz }, speed, (int)(16.0 * hau));
+					// Check the new starting position is actually on the original platform
+					// It's technically possible for this to be on a PU version of the platform
+					// which would fool the validator, so check for this here
+					bool tilt_test = fabs(next_nx - nx) < 0.001f && fabs(next_ny - ny) < 0.001f && fabs(next_nz - nz) < 0.001f;
+					bool universe_test = fabs(original_x) <= 8192.0f && fabs(original_y) <= 8192.0f && fabs(original_z) <= 8192.0f;
+					bool start_tri_test = on_triangle(plat->triangles[tri_idx], original_x, original_y, original_z);
 
-					if (fabs(next_nx - nx) < 0.001f && fabs(next_ny - ny) < 0.001f && fabs(next_nz - nz) < 0.001f) {
+					if (tilt_test && universe_test && start_tri_test) {
 						// Rotate platform to second frame position
 						// We need this to find the y normal for the adjusted speed calculation
 						pre_plat.triangles[0].rotate(pre_plat.transform);
