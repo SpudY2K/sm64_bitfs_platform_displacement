@@ -1115,6 +1115,26 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 						Mario v_mario({ original_x, original_y, original_z }, adj_speed, (int)(16.0 * hau));
 
 						if (validate_solution(&v_mario, v_normal) == 0) {
+							#pragma omp critical 
+							{
+								char p_idx_b = (char)platform_idx;
+								char t_idx_b = (char)tri_idx;
+								uint16_t yaw = (uint16_t)(16.0*hau);
+								myfile.write((char *)&p_idx_b, sizeof(char));
+								myfile.write((char *)&t_idx_b, sizeof(char));
+								myfile.write((char *)&yaw, sizeof(uint16_t));
+								myfile.write((char *)&adj_speed, sizeof(float));
+								myfile.write((char *)&v_normal[0], sizeof(float));
+								myfile.write((char *)&v_normal[1], sizeof(float));
+								myfile.write((char *)&v_normal[2], sizeof(float));
+								myfile.write((char *)&original_x, sizeof(float));
+								myfile.write((char *)&original_y, sizeof(float));
+								myfile.write((char *)&original_z, sizeof(float));
+								myfile.write((char *)&v_mario.pos[0], sizeof(float));
+								myfile.write((char *)&v_mario.pos[1], sizeof(float));
+								myfile.write((char *)&v_mario.pos[2], sizeof(float));
+							}
+							
 							printf("Solution found:\nSpeed: %f\nDe Facto Speed: %f\nYaw: %d\nPlatform normals: (%.9f, %.9f, %.9f)\nMario start: (%.9f, %.9f, %.9f)\nMario end: (%.9f, %.9f, %.9f)\n",
 								adj_speed, speed*plat->triangles[tri_idx].normal[1], (int)(16.0*hau), v_normal[0], v_normal[1], v_normal[2], original_x, original_y, original_z, v_mario.pos[0], v_mario.pos[1], v_mario.pos[2]);
 							solution_count++;
@@ -1628,31 +1648,33 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 }
 
 void search_normals() {
-	myfile.open("Normals.txt");
-	const double norm_norm = 0.95;
-	const int n_samples = 1000;
-	const double sample_gap = 2.0*norm_norm / (double)n_samples;
+	myfile.open("Solutions.txt", std::ios_base::binary);
+	
+	const double min_ny = 0.837;
+	const double max_ny = 0.862;
+	
+	const float sample_gap = 0.0001;
 
-	const double min_ny = 0.01;
+	double maxnxnzsq = sqrt(1.0 - (min_ny*min_ny));
+	
+	int n_samples = (int)floor((max_ny - min_ny) / sample_gap);
 
-	//for (double norm_norm=0.3; norm_norm<=1.5; norm_norm+=0.01) {
-	//double nx; double nz;
-	//while (true) {
 	#pragma omp parallel for schedule(dynamic, 1)
 	for (int i = 0; i <= n_samples; i++) {
 		Mario mario;
 		Platform plat(platform_positions[platform_idx][0], platform_positions[platform_idx][1], platform_positions[platform_idx][2]);
 		Vec2S tri = plat.triangles;
 
-		double nx = ((double)i*sample_gap) - norm_norm;
+		double ny = ((double)i*sample_gap) + min_ny;
 
-		printf("nx = %f\n", nx);
-		double max_nz_dist = floor(sqrt(norm_norm * norm_norm - nx * nx - min_ny * min_ny) / sample_gap)*sample_gap;
-		for (double nz = -max_nz_dist; nz <= max_nz_dist; nz += sample_gap) {
-			solution_count = 0;
+		printf("ny = %f\n", ny);
 
-			double ny = sqrtf(powf((float)norm_norm, 2) - powf((float)nx, 2) - powf((float)nz, 2));
+		double max_nx_dist = floor(maxnxnzsq / sample_gap)*sample_gap;
 
+		for (double nx = -max_nx_dist; nx <= max_nx_dist; nx += sample_gap) {
+		    double max_nz_dist = floor(sqrt(maxnxnzsq * maxnxnzsq - nx * nx) / sample_gap)*sample_gap;
+
+		    for (double nz = -max_nz_dist; nz <= max_nz_dist; nz += sample_gap) {
 			// Tilt angle cut-offs
 			// These are the yaw boundaries where the platform tilt 
 			// switches direction. Directions match normal_offsets:
@@ -1942,13 +1964,7 @@ void search_normals() {
 				}
 			}
 			plat.triangles = tri;
-
-			if (solution_count > 0) {
-				#pragma omp critical 
-				{
-					myfile << nx << ", " << nz << ", " << solution_count << "\n";
-				}
-			}
+		    }
 		}
 	}
 
