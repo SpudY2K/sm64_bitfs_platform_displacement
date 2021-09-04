@@ -85,8 +85,6 @@ void Platform::platform_logic(Mario* m) {
 
 	o->oTiltingPyramidMarioOnPlatform = TRUE;*/
 
-	Mat4 old_mat = transform;
-
 	// Approach the normals by 0.01f towards the new goal, then create a transform matrix and orient the object. 
 	// Outside of the other conditionals since it needs to tilt regardless of whether Mario is on.
 	normal[0] = approach_by_increment(dx, normal[0], 0.01f);
@@ -98,8 +96,9 @@ void Platform::platform_logic(Mario* m) {
 	triangles[1].rotate(transform);
 
 	// pretty sure you can always assume if here, then mario is on the floor
-	Surface const* floor = find_floor(m->pos, triangles);
-
+	float floor_height = 0.0;
+	Surface const* floor = find_floor(m->pos, triangles, &floor_height);
+	create_transform_from_normals();
 	// If Mario is on the platform, adjust his position for the platform tilt.
 	if (floor) {
 		linear_mtxf_mul_vec3f(posAfterRotation, transform, dist);
