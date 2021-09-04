@@ -84,7 +84,7 @@ float line_point(const Vec3s& p1, const Vec3s& p2, float x, bool followY) {
 	}
 }
 
-Surface const * find_floor(Vec3f& pos, Vec2S& triangles) {
+Surface const * find_floor(Vec3f& pos, Vec2S& triangles, float* pheight) {
 	Surface const * floor = NULL;
 
 	int16_t x = static_cast<int16_t>(static_cast<int>(pos[0]));
@@ -127,6 +127,7 @@ Surface const * find_floor(Vec3f& pos, Vec2S& triangles) {
 			continue;
 		}
 
+		*pheight = height;
 		floor = &surf;
 		break;
 	}
