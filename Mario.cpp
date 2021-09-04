@@ -7,7 +7,9 @@ void Mario::set_pos(const Vec3f& position) {
 int Mario::ground_step(Vec2S& triangles) {
     int steps = 0;
 
-	const Surface* floor = find_floor(pos, triangles);
+	float floor_height = 0.0;
+
+	const Surface* floor = find_floor(pos, triangles, &floor_height);
 
 	if (floor) {
 		float x_vel = this->speed * gSineTable[uint16_t(this->yaw) >> 4];
@@ -32,12 +34,17 @@ int Mario::ground_step(Vec2S& triangles) {
 
 			steps++;
 
-			floor = find_floor(pos, triangles);
+			floor = find_floor(pos, triangles, &floor_height);
 
 			if (!floor) { break; }
 
-			// Find the height of the floor at a given location.
-			this->pos[1] = -(x_mod * floor->normal[0] + floor->normal[2] * z_mod + floor->originOffset) / floor->normal[1];
+			// If Mario is over 100 units off the ground, stop and don't update y position
+			if (this->pos[1] > floor_height + 100.0f) {
+				break;
+			}
+			else {
+				this->pos[1] = floor_height;
+			}
 		}
 	}
 
