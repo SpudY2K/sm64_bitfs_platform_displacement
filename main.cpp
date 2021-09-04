@@ -53,8 +53,16 @@ int validate_solution(Mario* mario, const Vec3f& normals) {
 		return 7;
 	}
 
-	if (!find_floor(mario->pos, plat.triangles)) {
+	float floor_height = lava_y;
+
+	const Surface* floor = find_floor(mario->pos, plat.triangles, &floor_height);
+	
+	if (!floor) {
 		return 2;
+	}
+	
+	if (fabs(mario->pos[1] - floor_height) >= 4.0f) {
+		return 8;
 	}
 
 	Vec3f pre_tilt_pos = mario->pos;
@@ -961,8 +969,6 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 
 					pre_plat.create_transform_from_normals();
 
-					Mat4 old_mat = pre_plat.transform;
-
 					pre_plat.normal[0] = initial_nx;
 					pre_plat.normal[1] = initial_ny;
 					pre_plat.normal[2] = initial_nz;
@@ -1094,7 +1100,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 						// We need this to find the y normal for the adjusted speed calculation
 						pre_plat.triangles[0].rotate(pre_plat.transform);
 						pre_plat.triangles[1].rotate(pre_plat.transform);
-						old_mat = pre_plat.transform;
+						
 						pre_plat.normal = { next_nx, next_ny, next_nz };
 
 						pre_plat.create_transform_from_normals();
@@ -1650,12 +1656,12 @@ bool try_pu_z(Platform* plat, Mat4 T_start, Mat4 T_tilt, double z, double z1_min
 void search_normals() {
 	myfile.open("Solutions.txt", std::ios_base::binary);
 	
-	const double min_ny = 0.837;
+	const double min_ny = 0.747;
 	const double max_ny = 0.862;
 	
 	const float sample_gap = 0.0001;
 
-	double maxnxnzsq = sqrt(1.0 - (min_ny*min_ny));
+	double maxnxnzsq = sqrt(1.0 - (0.837*0.837));
 	
 	int n_samples = (int)floor((max_ny - min_ny) / sample_gap);
 
@@ -1693,8 +1699,6 @@ void search_normals() {
 			plat.normal[2] = 0;
 
 			plat.create_transform_from_normals();
-
-			Mat4 old_mat = plat.transform;
 
 			plat.normal[0] = (float)nx;
 			plat.normal[1] = (float)ny;
