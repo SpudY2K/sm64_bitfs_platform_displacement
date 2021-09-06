@@ -1659,19 +1659,19 @@ void search_normals() {
 	const double min_ny = 0.747;
 	const double max_ny = 0.862;
 	
-	const float sample_gap = 0.0001;
+	const double sample_gap = 0.0001;
 
 	double maxnxnzsq = sqrt(1.0 - (0.837*0.837));
 	
 	int n_samples = (int)floor((max_ny - min_ny) / sample_gap);
 
 	#pragma omp parallel for schedule(dynamic, 1)
-	for (int i = 0; i <= n_samples; i++) {
+	for (int h = 0; h <= n_samples; h++) {
 		Mario mario;
 		Platform plat(platform_positions[platform_idx][0], platform_positions[platform_idx][1], platform_positions[platform_idx][2]);
 		Vec2S tri = plat.triangles;
 
-		double ny = ((double)i*sample_gap) + min_ny;
+		double ny = ((double)h*sample_gap) + min_ny;
 
 		printf("ny = %f\n", ny);
 
