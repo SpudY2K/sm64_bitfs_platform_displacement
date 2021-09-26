@@ -350,7 +350,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 			min_speed_end_z = end_z;
 		}
 		else {
-			double t_n = sinA * ((*firstVector)[2] + (3.0 / 4.0)*pu_z) - (*oppVector)[2] - cosA * (((*firstVector)[0] + (3.0 / 4.0)*pu_x) - (*oppVector)[0]);
+			double t_n = sinA * (((*firstVector)[2] + (3.0 / 4.0)*pu_z) - (*oppVector)[2]) - cosA * ((((*firstVector)[0] + (3.0 / 4.0)*pu_x) - (*oppVector)[0]));
 			double t_d = cosA * ((*secondVector)[0] - (*firstVector)[0]) - sinA * ((*secondVector)[2] - (*firstVector)[2]);
 
 			if (t_d < 0) {
@@ -869,6 +869,10 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 		}
 	}
 
+	//Bug: sometimes start positions miss the platform. Please fix.
+	//For now, check and quit here if it happens.
+	if (abs(max_speed_start_x) > 8192 || abs(max_speed_start_z) > 8192 || abs(min_speed_start_x) > 8192 || abs(min_speed_start_z) > 8192) return; 
+	
 	// So far we've been working with doubles for precision,
 	// but our final parameters need to be floats.
 	//
@@ -1092,7 +1096,7 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					// It's technically possible for this to be on a PU version of the platform
 					// which would fool the validator, so check for this here
 					bool tilt_test = fabs(next_nx - nx) < 0.001f && fabs(next_ny - ny) < 0.001f && fabs(next_nz - nz) < 0.001f;
-					bool universe_test = fabs(original_x) <= 8192.0f && fabs(original_y) <= 8192.0f && fabs(original_z) <= 8192.0f;
+					bool universe_test = fabs(original_x) <= 32768.0f && fabs(original_y) <= 32768.0f && fabs(original_z) <= 32768.0f;
 					bool start_tri_test = on_triangle(plat->triangles[tri_idx], original_x, original_y, original_z);
 
 					if (tilt_test && universe_test && start_tri_test) {
@@ -1187,7 +1191,9 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 				}
 
 				if (upper_speed < lower_speed) {
-					if (start_x >= max_speed_start_x && start_z >= max_speed_start_z) {
+					float min_start_dist = 0.01;
+
+					if (abs(start_x-max_speed_start_x) < min_start_dist && abs(start_z-max_speed_start_z) < min_start_dist) {
 						// Search couldn't find a suitable place on the platform to do the desired displacement.
 						// Maybe no solutions exist here.
 						// Though, perhaps this can be resolved with a more comprehensive search of the platform.
@@ -1198,12 +1204,12 @@ void try_hau(Platform* plat, double hau, double pu_x, double pu_z, double nx, do
 					}
 					else {
 						// If all speeds fail to land us on the platform, try a different starting position.
-						if (start_x < max_speed_start_x) {
+						if (abs(start_x - max_speed_start_x) >= min_start_dist) {
 							float dir_x = (float)(max_speed_start_x - start_x)*INFINITY;
 							start_x = (float)((nextafterf(start_x, dir_x) + max_speed_start_x) / 2.0f);
 						}
 
-						if (start_z < max_speed_start_z) {
+						if (abs(start_z - max_speed_start_z) >= min_start_dist) {
 							float dir_z = (float)(max_speed_start_z - start_z)*INFINITY;
 							start_z = (float)((nextafterf(start_z, dir_z) + max_speed_start_z) / 2.0f);
 						}
