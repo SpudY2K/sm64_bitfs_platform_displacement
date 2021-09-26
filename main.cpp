@@ -1673,47 +1673,47 @@ void try_normal(Platform* plat, double nx, double ny, double nz) {
 	a[2] = M_PI - a[0];
 	a[3] = 2 * M_PI - a[1];
 
-	plat.normal[0] = 0;
-	plat.normal[1] = 1;
-	plat.normal[2] = 0;
+	plat->normal[0] = 0;
+	plat->normal[1] = 1;
+	plat->normal[2] = 0;
 
-	plat.create_transform_from_normals();
+	plat->create_transform_from_normals();
 
-	plat.normal[0] = (float)nx;
-	plat.normal[1] = (float)ny;
-	plat.normal[2] = (float)nz;
+	plat->normal[0] = (float)nx;
+	plat->normal[1] = (float)ny;
+	plat->normal[2] = (float)nz;
 
-	plat.create_transform_from_normals();
+	plat->create_transform_from_normals();
 
-	plat.triangles[0].rotate(plat.transform);
-	plat.triangles[1].rotate(plat.transform);
+	plat->triangles[0].rotate(plat->transform);
+	plat->triangles[1].rotate(plat->transform);
 
-	double platform_min_x = fmin(fmin(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmin(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
-	double platform_max_x = fmax(fmax(plat.triangles[0].vectors[0][0], plat.triangles[0].vectors[1][0]), fmax(plat.triangles[0].vectors[2][0], plat.triangles[1].vectors[2][0]));
-	double platform_min_z = fmin(fmin(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmin(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
-	double platform_max_z = fmax(fmax(plat.triangles[0].vectors[0][2], plat.triangles[0].vectors[1][2]), fmax(plat.triangles[0].vectors[2][2], plat.triangles[1].vectors[2][2]));
+	double platform_min_x = fmin(fmin(plat->triangles[0].vectors[0][0], plat->triangles[0].vectors[1][0]), fmin(plat->triangles[0].vectors[2][0], plat->triangles[1].vectors[2][0]));
+	double platform_max_x = fmax(fmax(plat->triangles[0].vectors[0][0], plat->triangles[0].vectors[1][0]), fmax(plat->triangles[0].vectors[2][0], plat->triangles[1].vectors[2][0]));
+	double platform_min_z = fmin(fmin(plat->triangles[0].vectors[0][2], plat->triangles[0].vectors[1][2]), fmin(plat->triangles[0].vectors[2][2], plat->triangles[1].vectors[2][2]));
+	double platform_max_z = fmax(fmax(plat->triangles[0].vectors[0][2], plat->triangles[0].vectors[1][2]), fmax(plat->triangles[0].vectors[2][2], plat->triangles[1].vectors[2][2]));
 
-	double min_y = fmin(lava_y, fmin(fmin(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmin(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1])));
-	double max_y = fmax(fmax(plat.triangles[0].vectors[0][1], plat.triangles[0].vectors[1][1]), fmax(plat.triangles[0].vectors[2][1], plat.triangles[1].vectors[2][1]));
+	double min_y = fmin(lava_y, fmin(fmin(plat->triangles[0].vectors[0][1], plat->triangles[0].vectors[1][1]), fmin(plat->triangles[0].vectors[2][1], plat->triangles[1].vectors[2][1])));
+	double max_y = fmax(fmax(plat->triangles[0].vectors[0][1], plat->triangles[0].vectors[1][1]), fmax(plat->triangles[0].vectors[2][1], plat->triangles[1].vectors[2][1]));
 
-	Mat4 T_start = plat.transform;
+	Mat4 T_start = plat->transform;
 
 	// Try to find solutions for each possible platform tilt direction
 	for (int i = 0; i < 4; i++) {
-		plat.normal[0] += normal_offsets[i][0];
-		plat.normal[1] += normal_offsets[i][1];
-		plat.normal[2] += normal_offsets[i][2];
-		plat.create_transform_from_normals();
+		plat->normal[0] += normal_offsets[i][0];
+		plat->normal[1] += normal_offsets[i][1];
+		plat->normal[2] += normal_offsets[i][2];
+		plat->create_transform_from_normals();
 
-		Mat4 T_tilt = plat.transform;
-		plat.normal = { (float)nx, (float)ny, (float)nz };
-		plat.create_transform_from_normals();
+		Mat4 T_tilt = plat->transform;
+		plat->normal = { (float)nx, (float)ny, (float)nz };
+		plat->create_transform_from_normals();
 
 		double T_diff01 = T_tilt[0][1] - T_start[0][1];
 		double T_diff11 = T_tilt[1][1] - T_start[1][1];
 		double T_diff21 = T_tilt[2][1] - T_start[2][1];
-		double r_min = lower_y - (1 + T_diff11)*max_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
-		double r_max = upper_y - (1 + T_diff11)*min_y + T_diff01 * plat.pos[0] + T_diff11 * plat.pos[1] + T_diff21 * plat.pos[2];
+		double r_min = lower_y - (1 + T_diff11)*max_y + T_diff01 * plat->pos[0] + T_diff11 * plat->pos[1] + T_diff21 * plat->pos[2];
+		double r_max = upper_y - (1 + T_diff11)*min_y + T_diff01 * plat->pos[0] + T_diff11 * plat->pos[1] + T_diff21 * plat->pos[2];
 
 		// z = mx + c_min
 		// z = mx + c_max
@@ -1749,69 +1749,69 @@ void try_normal(Platform* plat, double nx, double ny, double nz) {
 
 		if (nx == 0) {
 			if (i % 2 == 0) {
-				x1_min = (c_min + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
-				x1_max = (c_max + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
+				x1_min = (c_min + tan(a[i])*plat->pos[0] - plat->pos[2]) / (tan(a[i]) - m);
+				x1_max = (c_max + tan(a[i])*plat->pos[0] - plat->pos[2]) / (tan(a[i]) - m);
 				x2_min = 0;
 				x2_max = 0;
 
-				if (a1_cos > 0 && x1_min < plat.pos[0] || a1_cos < 0 && x1_min > plat.pos[0]) {
+				if (a1_cos > 0 && x1_min < plat->pos[0] || a1_cos < 0 && x1_min > plat->pos[0]) {
 					x1_min = NAN;
 				}
 
-				if (a1_cos > 0 && x1_max < plat.pos[0] || a1_cos < 0 && x1_max > plat.pos[0]) {
+				if (a1_cos > 0 && x1_max < plat->pos[0] || a1_cos < 0 && x1_max > plat->pos[0]) {
 					x1_max = NAN;
 				}
 
-				if (nz > 0 && c_min < plat.pos[0] || nz < 0 && c_min > plat.pos[0]) {
+				if (nz > 0 && c_min < plat->pos[0] || nz < 0 && c_min > plat->pos[0]) {
 					x2_min = NAN;
 				}
 
-				if (nz > 0 && c_max < plat.pos[0] || nz < 0 && c_max > plat.pos[0]) {
+				if (nz > 0 && c_max < plat->pos[0] || nz < 0 && c_max > plat->pos[0]) {
 					x2_max = NAN;
 				}
 			}
 			else {
 				x1_min = 0;
 				x1_max = 0;
-				x2_min = (c_min + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
-				x2_max = (c_max + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+				x2_min = (c_min + tan(a[(i + 1) % 4])*plat->pos[0] - plat->pos[2]) / (tan(a[(i + 1) % 4]) - m);
+				x2_max = (c_max + tan(a[(i + 1) % 4])*plat->pos[0] - plat->pos[2]) / (tan(a[(i + 1) % 4]) - m);
 
-				if (nz > 0 && c_min < plat.pos[0] || nz < 0 && c_min > plat.pos[0]) {
+				if (nz > 0 && c_min < plat->pos[0] || nz < 0 && c_min > plat->pos[0]) {
 					x1_min = NAN;
 				}
 
-				if (nz > 0 && c_max < plat.pos[0] || nz < 0 && c_max > plat.pos[0]) {
+				if (nz > 0 && c_max < plat->pos[0] || nz < 0 && c_max > plat->pos[0]) {
 					x1_max = NAN;
 				}
 
-				if (a2_cos > 0 && x2_min < plat.pos[0] || a2_cos < 0 && x2_min > plat.pos[0]) {
+				if (a2_cos > 0 && x2_min < plat->pos[0] || a2_cos < 0 && x2_min > plat->pos[0]) {
 					x2_min = NAN;
 				}
 
-				if (a2_cos > 0 && x2_max < plat.pos[0] || a2_cos < 0 && x2_max > plat.pos[0]) {
+				if (a2_cos > 0 && x2_max < plat->pos[0] || a2_cos < 0 && x2_max > plat->pos[0]) {
 					x2_max = NAN;
 				}
 			}
 		}
 		else {
-			x1_min = (c_min + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
-			x1_max = (c_max + tan(a[i])*plat.pos[0] - plat.pos[2]) / (tan(a[i]) - m);
-			x2_min = (c_min + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
-			x2_max = (c_max + tan(a[(i + 1) % 4])*plat.pos[0] - plat.pos[2]) / (tan(a[(i + 1) % 4]) - m);
+			x1_min = (c_min + tan(a[i])*plat->pos[0] - plat->pos[2]) / (tan(a[i]) - m);
+			x1_max = (c_max + tan(a[i])*plat->pos[0] - plat->pos[2]) / (tan(a[i]) - m);
+			x2_min = (c_min + tan(a[(i + 1) % 4])*plat->pos[0] - plat->pos[2]) / (tan(a[(i + 1) % 4]) - m);
+			x2_max = (c_max + tan(a[(i + 1) % 4])*plat->pos[0] - plat->pos[2]) / (tan(a[(i + 1) % 4]) - m);
 
-			if (a1_cos > 0 && x1_min < plat.pos[0] || a1_cos < 0 && x1_min > plat.pos[0]) {
+			if (a1_cos > 0 && x1_min < plat->pos[0] || a1_cos < 0 && x1_min > plat->pos[0]) {
 				x1_min = NAN;
 			}
 
-			if (a1_cos > 0 && x1_max < plat.pos[0] || a1_cos < 0 && x1_max > plat.pos[0]) {
+			if (a1_cos > 0 && x1_max < plat->pos[0] || a1_cos < 0 && x1_max > plat->pos[0]) {
 				x1_max = NAN;
 			}
 
-			if (a2_cos > 0 && x2_min < plat.pos[0] || a2_cos < 0 && x2_min > plat.pos[0]) {
+			if (a2_cos > 0 && x2_min < plat->pos[0] || a2_cos < 0 && x2_min > plat->pos[0]) {
 				x2_min = NAN;
 			}
 
-			if (a2_cos > 0 && x2_max < plat.pos[0] || a2_cos < 0 && x2_max > plat.pos[0]) {
+			if (a2_cos > 0 && x2_max < plat->pos[0] || a2_cos < 0 && x2_max > plat->pos[0]) {
 				x2_max = NAN;
 			}
 		}
@@ -1823,7 +1823,7 @@ void try_normal(Platform* plat, double nx, double ny, double nz) {
 
 		// If the normals match then you can't force Mario out of bounds after his final q step.
 		// Therefore, only 4 q_steps are possible.
-		int min_q_steps = (plat.triangles[0].normal[1] == plat.triangles[1].normal[1]) ? 4 : 1;
+		int min_q_steps = (plat->triangles[0].normal[1] == plat->triangles[1].normal[1]) ? 4 : 1;
 
 		for (int q = 4; q >= min_q_steps; q--) {
 			double pu_gap = 65536.0 * q;
@@ -1874,24 +1874,24 @@ void try_normal(Platform* plat, double nx, double ny, double nz) {
 
 				// Search backwards from x=0
 				for (double x = fmin(0, last_x_pu); x + platform_min_x > poly_x_start; x -= pu_gap) {
-					if (!try_pu_x(&plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+					if (!try_pu_x(plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
 						break;
 					}
 				}
 
 				// Search forwards from x>0
 				for (double x = fmax(pu_gap, first_x_pu); x - platform_max_x < poly_x_end; x += pu_gap) {
-					if (!try_pu_x(&plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+					if (!try_pu_x(plat, T_start, T_tilt, x, x1_min, x1_max, x2_min, x2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
 						break;
 					}
 				}
 			}
 			else {
 				// Calculate z coordinates of intersection points
-				double z1_min = tan(a[i])*x1_min + plat.pos[2] - tan(a[i])*plat.pos[0];
-				double z1_max = tan(a[i])*x1_max + plat.pos[2] - tan(a[i])*plat.pos[0];
-				double z2_min = tan(a[(i + 1) % 4])*x2_min + plat.pos[2] - tan(a[(i + 1) % 4])*plat.pos[0];
-				double z2_max = tan(a[(i + 1) % 4])*x2_max + plat.pos[2] - tan(a[(i + 1) % 4])*plat.pos[0];
+				double z1_min = tan(a[i])*x1_min + plat->pos[2] - tan(a[i])*plat->pos[0];
+				double z1_max = tan(a[i])*x1_max + plat->pos[2] - tan(a[i])*plat->pos[0];
+				double z2_min = tan(a[(i + 1) % 4])*x2_min + plat->pos[2] - tan(a[(i + 1) % 4])*plat->pos[0];
+				double z2_max = tan(a[(i + 1) % 4])*x2_max + plat->pos[2] - tan(a[(i + 1) % 4])*plat->pos[0];
 
 				// Find z limits of polygon
 				double poly_z_start; double poly_z_end;
@@ -1931,14 +1931,14 @@ void try_normal(Platform* plat, double nx, double ny, double nz) {
 
 				// Search backwards from z=0
 				for (double z = fmin(0, last_z_pu); z + platform_min_z > poly_z_start; z -= pu_gap) {
-					if (!try_pu_z(&plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+					if (!try_pu_z(plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
 						break;
 					}
 				}
 
 				// Search forwards from z>0
 				for (double z = fmax(pu_gap, first_z_pu); z - platform_max_z < poly_z_end; z += pu_gap) {
-					if (!try_pu_z(&plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
+					if (!try_pu_z(plat, T_start, T_tilt, z, z1_min, z1_max, z2_min, z2_max, platform_min_x, platform_max_x, platform_min_z, platform_max_z, m, c_min, c_max, nx, ny, nz, i, q)) {
 						break;
 					}
 				}
