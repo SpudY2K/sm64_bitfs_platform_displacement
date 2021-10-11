@@ -435,12 +435,12 @@ bool try_pu_xz(SearchParams* params, Platform* plat, double x, double z, double 
 		return false;
 	}
 
-	double min_hau = 4096;
-	double max_hau = -1;
-
 	// Search for solutions starting on each of the platform's triangles
 	for (int i = 0; i < 2; i++) {
 		if (min_dist / plat->triangles[i].normal[1] <= params->max_speed) {
+			double min_hau = 4096;
+			double max_hau = -1;
+			
 			if (q_steps == 4) {
 				for (int a = 0; a < 3; a++) {
 					for (int b = 0; b < 3; b++) {
