@@ -2,6 +2,7 @@
 #include "Magic.hpp"
 #include "Platform.hpp"
 #include "Validate.hpp"
+#include <cmath>
 
 bool validate_solution(Solution* s, SearchParams* param, Vec3f& final_pos, bool pancake) {
 	if (pancake) {
@@ -65,7 +66,7 @@ int validate_solution_sim(Solution* s, Mario* mario) {
 		return 2;
 	}
 
-	if (fabs(mario->pos[1] - floor_height) >= 4.0f) {
+	if (std::fabs(mario->pos[1] - floor_height) >= 4.0f) {
 		return 8;
 	}
 

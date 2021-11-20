@@ -1,5 +1,6 @@
 #include "Constants.hpp"
 #include "SearchUtils.hpp"
+#include <cmath>
 #include <fstream>
 
 bool in_triangle(Surface surf, float x, float z) {
